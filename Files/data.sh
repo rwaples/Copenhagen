@@ -83,18 +83,17 @@ sed -i -e 's/\t\./\t0|0/g' Data/CHB.$GENE.vcf
 $VCFLIB/vcfkeepsamples Data/ALL.$GENE.vcf HG01112 HG01113 HG01119 HG01121 HG01122 HG01124 HG01125 HG01130 HG01131 HG01133 HG01134 HG01136 HG01137 HG01139 HG01140 HG01142 HG01148 HG01149 HG01250 HG01251 HG01253 HG01254 HG01256 HG01257 HG01259 HG01260 HG01269 HG01271 HG01272 HG01274 HG01275 HG01277 HG01278 HG01280 HG01281 HG01284 HG01341 HG01342 HG01344 HG01345 HG01347 HG01348 HG01350 HG01351 HG01353 HG01354 HG01356 HG01357 HG01359 HG01360 HG01362 HG01363 HG01365 HG01366 HG01369 HG01372 HG01374 HG01375 HG01377 HG01378 > Data/CLM.$GENE.vcf
 sed -i -e 's/\t\./\t0|0/g' Data/CLM.$GENE.vcf
 
-
 # clean up
 rm $VCF $VCF.tbi ALL.chr$CHROM.tmp.vcf ALL.$GENE.tmp.vcf
 
 
-wget http://hapmap.ncbi.nlm.nih.gov/downloads/recombination/2011-01_phaseII_B37/genetic_map_HapMapII_GRCh37.tar.gz .
-
-wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20130507_omni_recombination_rates/CHB_omni_recombination_20130507.tar
-
-wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20130507_omni_recombination_rates/CLM_omni_recombination_20130507.tar
-
-wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20130507_omni_recombination_rates/PEL_omni_recombination_20130507.tar
+echo Downloading recombination map
+mkdir Map
+wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20130507_omni_recombination_rates/PEL_omni_recombination_20130507.tar &> /dev/null
+tar -C Map -xvf PEL_omni_recombination_20130507.tar &> /dev/null
+zcat Map/PEL/PEL-$CHROM-final.txt.gz > Files/genetic_map_chrom2.map
+rm -rf Map
+rm PEL_omni_recombination_20130507.tar
 
 
 echo Done!

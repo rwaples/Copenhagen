@@ -49,17 +49,16 @@ Additional scripts are be provided in the `Scripts/` folder.
 
 ### Tuesday afternoon -  introduction to NGS data:
 
-#### Lecture
+#### Lecture 1-2.15pm
 
 * Basics of data handling and [filtering](link.md)
 * Maximum likelihood and Bayesian estimation
 * Genotype likelihoods
 * Allele frequencies, SNPs and genotypes calling
 * EM algorithm - Imputation - Phasing (Anders)
-* Estimation of summary statistics from low-depth data
 * Paper discussion ?
 
-#### Practical
+#### Practical 2.30-4pm
 
 * Basic data filtering
 * Estimation of allele frequencies and [SNP calling](link_here.md)
@@ -73,7 +72,7 @@ Additional scripts are be provided in the `Scripts/` folder.
 
 ### Friday morning -  detecting selection
 
-#### Lecture
+#### Lecture 9-10.15pm
 
 * The effect of selection on the genome
 * Methods to detect selection signals
@@ -81,7 +80,7 @@ Additional scripts are be provided in the `Scripts/` folder.
 * Bias introduced by NGS data
 * Summary statistics from low-depth data
 
-#### Practical
+#### Practical 10:30-12
 
 * Selection scan based on [genetic differentiation](https://github.com/mfumagalli/Weggis/blob/master/Files/selection.md) from low-depth data
 * Assessing significance through [simulations](https://github.com/mfumagalli/Weggis/blob/master/Files/simulation.md)

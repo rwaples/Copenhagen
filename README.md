@@ -17,7 +17,7 @@ To download and access all the material in this web page locally use [git](http:
 Uncomment it before running it.
 ```
 # git clone https://github.com/mfumagalli/Copenhagen.git
-# cd Weggis
+# cd Copenhagen
 # git pull # to be sure you have the latest version, if so you should see "Already up-to-date."
 ```
 

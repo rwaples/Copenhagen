@@ -8,9 +8,9 @@ echo Retrieving file names...
 NS=20
 
 # chrom start end
-CHROM=2
-START=108000000
-END=1110000000
+CHROM=$1
+START=$2
+END=$3
 
 # get IDs 
 for POP in LWK TSI CHB PEL;

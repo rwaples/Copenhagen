@@ -5,6 +5,11 @@
 # SAMTOOLS=/data/data/Software/samtools-1.3/samtools
 SAMTOOLS=samtools
 echo Is this your path to samtools? $SAMTOOLS
+BGZIP=bgzip
+echo Is this your path to bgzip? $BGZIP
+
+VCFLIB=/data/data/Software/vcflib/bin
+echo Is this your path to VCFlib? $VCFLIB
 
 # chrom start end
 CHROM=2
@@ -18,7 +23,7 @@ mkdir Results
 Rscript Scripts/getUnrelated.R
 
 # download BAM files
-bash Scripts/getBams.sh
+bash Scripts/getBams.sh $CHROM $START $END
 # this creates files and folders in Data/PEL.BAMs/* and TSI and LWK and CHB
 
 # create file with list of BAMs
@@ -31,29 +36,35 @@ ls Data/PEL.BAMs/*.bam > PEL.bamlist
 
 # download ancestral sequence
 echo Downloading and processing ancestral sequence...
-wget http://dna.ku.dk/~thorfinn/hg19ancNoChr.fa.gz &>/dev/null
-gunzip hg19ancNoChr.fa.gz &>/dev/null
-$SAMTOOLS faidx hg19ancNoChr.fa
-mv hg19ancNoChr.* Data/.
+wget ftp://ftp.ensembl.org/pub/release-65/fasta/ancestral_alleles/homo_sapiens_ancestor_GRCh37_e65.tar.bz
+tar xjf homo_sapiens_ancestor_GRCh37_e65.tar.bz
+cp homo_sapiens_ancestor_GRCh37_e65/homo_sapiens_ancestor_$CHROM.fa Data/tmp.fa
+sed "1s/.*/>2/" Data/tmp.fa > Data/anc.fa
+rm Data/tmp.fa
+$BGZIP Data/anc.fa
+$SAMTOOLS faidx Data/anc.fa.gz
+rm -rf homo_sapiens_ancestor_GRCh37_e65*
 
 # download reference sequence
 echo Downloading and processing reference sequence...
-wget http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/hs37d5.fa.gz &>/dev/null
-gunzip hs37d5.fa.gz &>/dev/null
-$SAMTOOLS faidx hs37d5.fa
-mv hs37d5.* Data/.
+wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz &> /dev/null
+zcat human_g1k_v37.fasta.gz > Data/tmp.fa 2> /dev/null
+$SAMTOOLS faidx Data/tmp.fa
+$SAMTOOLS faidx Data/tmp.fa $CHROM > Data/ref.fa
+$BGZIP Data/ref.fa
+$SAMTOOLS faidx Data/ref.fa.gz
+rm Data/tmp.fa
 
 # download VCF files
 echo Downloading VCF file...
-wget http://hgdownload.cse.ucsc.edu/gbdb/hg19/1000Genomes/phase3/ALL.chr11.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz &> /dev/null
-wget http://hgdownload.cse.ucsc.edu/gbdb/hg19/1000Genomes/phase3/ALL.chr11.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz.tbi &> /dev/null
+wget http://hgdownload.cse.ucsc.edu/gbdb/hg19/1000Genomes/phase3/ALL.chr$CHROM.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz &> /dev/null
+wget http://hgdownload.cse.ucsc.edu/gbdb/hg19/1000Genomes/phase3/ALL.chr$CHROM.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz.tbi &> /dev/null
+
 echo Processing VCF file...
-VCFLIB=/data/data/Software/vcflib/bin
-echo Is this your path to VCFlib? $VCFLIB
-VCF=ALL.chr11.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz
+VCF=ALL.chr$CHROM.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz
 
 # whole region for selscan
-$VCFLIB/vcffilter -f "VT = SNP" -f "AC > 1" -f "QUAL > 32" -f "FS < 27" -f "DP > 10" -f "DP < 10000" -f "MQ > 10" -r $CHROM:$START-$END $VCF > ALL.chr$CHROM.tmp.vcf
+$VCFLIB/vcffilter -f "VT = SNP" -f "AC > 1" -f "QUAL > 32" -f "DP > 20" -f "DP < 50000" -f "MQ > 10" -r $CHROM:$START-$END $VCF > ALL.chr$CHROM.tmp.vcf
 grep -v MULTI_ALLELIC ALL.chr$CHROM.tmp.vcf > Data/ALL.chr$CHROM.vcf
 
 $VCFLIB/vcfkeepsamples Data/ALL.ch$CHROM.vcf HG01565 HG01566 HG01571 HG01572 HG01577 HG01578 HG01892 HG01893 HG01917 HG01918 HG01920 HG01921 HG01923 HG01924 HG01926 HG01927 HG01932 HG01933 HG01935 HG01938 HG01939 HG01941 HG01942 HG01944 HG01945 HG01947 HG01948 HG01950 HG01951 HG01953 HG01954 HG01961 HG01965 HG01967 HG01968 HG01970 HG01971 HG01973 HG01974 HG01976 HG01977 HG01979 HG01980 HG01982 HG01991 HG01992 HG01995 HG01997 HG02002 HG02003 HG02008 HG02089 HG02090 HG02104 HG02105 HG02146 HG02147 HG02252 HG02253 HG02259 > Data/PEL.chr$CHROM.vcf
@@ -91,7 +102,7 @@ echo Downloading recombination map
 mkdir Map
 wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20130507_omni_recombination_rates/PEL_omni_recombination_20130507.tar &> /dev/null
 tar -C Map -xvf PEL_omni_recombination_20130507.tar &> /dev/null
-zcat Map/PEL/PEL-$CHROM-final.txt.gz > Files/genetic_map_chrom2.map
+zcat Map/PEL/PEL-$CHROM-final.txt.gz > Data/genetic_map_chrom$CHROM.map
 rm -rf Map
 rm PEL_omni_recombination_20130507.tar
 

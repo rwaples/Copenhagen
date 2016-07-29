@@ -1,9 +1,15 @@
 
+In this session you will learn how to build a command line in ANGSD to do:
+* post-mapping filtering
+* variant calling
+* allele frequency estimation
+* genotype calling
+
 **WORKFLOW**:
 
 BASIC POST-MAPPING DATA > FILTERING
 
-In this section, we will show how to perform a basic filtering of sites, after the reads have been mapped or aligned.
+In this part, we will show how to perform a basic filtering of sites, after the reads have been mapped or aligned.
 
 For most of the examples, we will use the program [ANGSD](http://popgen.dk/wiki/index.php/ANGSD) (Analysis of Next Generation Sequencing Data) developed by Thorfinn Korneliussen and Anders Albrechtsen at the University of Copenhagen. 
 More information about its rationale and implemented methods can be found [here](http://www.ncbi.nlm.nih.gov/pubmed/25420514).
@@ -249,5 +255,198 @@ This software is called [ANGSD-wrapper](https://github.com/mojaveazure/angsd-wra
 
 ----------------------------
 
-[HOME](https://github.com/mfumagalli/Weggis)
+#### Estimation of allele frequencies
+
+Furthermore, we want to restrict this analysis on a set of putative polymorphic sites (SNPs), as non-variable sites (across all samples) will not carry information regarding population structure or differentiation.
+
+This search can be firstly translated in the estimation of the allele frequency for each site.
+In other words, at each site we want to to estimate (or count) how many copies of different alleles (two in case of biallelic SNPs) we observe in our sample (across all sequenced individuals).
+
+ANGSD has an option to estimate **allele frequencies**:
+
+```
+angsd -doMaf
+...
+-doMaf  0 (Calculate persite frequencies '.mafs.gz')
+        1: Frequency (fixed major and minor)
+        2: Frequency (fixed major unknown minor)
+        4: Frequency from genotype probabilities
+        8: AlleleCounts based method (known major minor)
+        NB. Filedumping is supressed if value is negative
+-doPost 0       (Calculate posterior prob 3xgprob)
+        1: Using frequency as prior
+        2: Using uniform prior
+Filters:
+        -minMaf         -1.000000       (Remove sites with MAF below)
+        -SNP_pval       1.000000        (Remove sites with a pvalue larger)
+        -rmTriallelic   0.000000        (Remove sites with a pvalue lower)
+Extras:
+        -ref    (null)  (Filename for fasta reference)
+        -anc    (null)  (Filename for fasta ancestral)
+        -eps    0.001000 [Only used for -doMaf &8]
+        -beagleProb     0 (Dump beagle style postprobs)
+        -indFname       (null) (file containing individual inbreedcoeficients)
+NB These frequency estimators requires major/minor -doMajorMinor
+```
+Therefore, the estimation of allele frequencies requires the specification of how to assign the major and minor alleles (if biallelic).
+```
+angsd -doMajorMinor
+...
+        -doMajorMinor   0
+        1: Infer major and minor from GL
+        2: Infer major and minor from allele counts
+        3: use major and minor from a file (requires -sites file.txt)
+        4: Use reference allele as major (requires -ref)
+        5: Use ancestral allele as major (requires -anc)
+        -rmTrans: remove transitions 0
+        -skipTriallelic 0
+```
+
+Finally, you need to specify which genotype likelihood model to use.
+```
+angsd -GL
+...
+        -GL=0:
+        1: SAMtools
+        2: GATK
+        3: SOAPsnp
+        4: SYK
+        5: phys
+        -trim           0               (zero means no trimming)
+        -tmpdir         angsd_tmpdir/   (used by SOAPsnp)
+        -errors         (null)          (used by SYK)
+        -minInd         0               (0 indicates no filtering)
+
+Filedumping:
+        -doGlf  0
+        1: binary glf (10 log likes)    .glf.gz
+        2: beagle likelihood file       .beagle.gz
+        3: binary 3 times likelihood    .glf.gz
+        4: text version (10 log likes)  .glf.gz
+```
+
+We may be interested in looking at allele frequencies only for sites that are actually variable in our sample.
+Therefore we want to perform a **SNP calling**.
+There are two main ways to call SNPs using ANGSD with these options:
+```
+        -minMaf         0.000000        (Remove sites with MAF below)
+        -SNP_pval       1.000000        (Remove sites with a pvalue larger)
+```
+Therefore we can consider assigning as SNPs sites whose estimated allele frequency is above a certain threhsold (e.g. the frequency of a singleton) or whose probability of being variable is above a specified value.
+
+#### SNP calling
+
+
+
+#### Genotype calling
+
+We want to investigate the population structure our samples: PEL,(Peruvians), TSI (Europeans), LWK (Africans), and CHB (East Asians).
+In particular we are interested to assess whether our PEL samples are genetically admixed with TSI and LWK.
+
+One solution would be to perform a Principal Component Analysis (PCA), Multidimensional Scaling (MDS) or some clustering based on genetic distances among samples.
+Then we can check whether some PEL fall within EUR/LWK or all PEL form a separate clade.
+
+To do this, we first need to assign genotypes (or their associated probabilities).
+We now see how to use ANGSD to call genotypes.
+The specific option is `-doGeno`:
+```
+angsd -doGeno
+...
+-doGeno 0
+        1: write major and minor
+        2: write the called genotype encoded as -1,0,1,2, -1=not called
+        4: write the called genotype directly: eg AA,AC etc
+        8: write the posterior probability of all possible genotypes
+        16: write the posterior probability of called gentype
+        32: write the posterior probability of called gentype as binary
+        -> A combination of the above can be choosen by summing the values, EG write 0,1,2 types with majorminor as -doGeno 3
+        -postCutoff=0.333333 (Only genotype to missing if below this threshold)
+        -geno_minDepth=-1       (-1 indicates no cutof)
+        -geno_maxDepth=-1       (-1 indicates no cutof)
+        -geno_minMM=-1.000000   (minimum fraction af major-minor bases)
+        -minInd=0       (only keep sites if you call genotypes from this number of individuals)
+
+        NB When writing the posterior the -postCutoff is not used
+        NB geno_minDepth requires -doCounts
+        NB geno_maxDepth requires -doCounts
+```
+
+Therefore, if we set `-doGeno 2`, genotypes are coded as 0,1,2, as the number of alternate alleles.
+If we want to print the major and minor alleles as well then we set `-doGeno 3`.
+
+To calculate the posterior probability of genotypes we need to define a model.
+```
+angsd -doPost
+
+...
+-doPost 0       (Calculate posterior prob 3xgprob)
+        1: Using frequency as prior
+        2: Using uniform prior
+...
+```
+`-doPost 1` uses the estimate per-site allele frequency as a prior for genotype proportions, assuming Hardy Weinberg Equilibrium.
+When the assumption of HWE is not valid, you can use an estimate of the inbreeding coefficient, for instance calculated using [ngsF](https://github.com/fgvieira/ngsF).
+
+For instance, recalling what previously shown as input/output/filtering options, a command line to call genotypes would be:
+```
+# angsd -P 4 -b $DIR/ALL_noCHB.bamlist -ref $REF -out Results/ALL \
+        -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
+        -minMapQ 20 -minQ 20 -minInd 30 -setMinDepth 30 -setMaxDepth 300 -doCounts 1 \
+        -doGeno 3 -doPost 1
+        ...
+```
+This command will not run, but it serves as an illustration of how to set parameters for genotype calling.
+
+--------------------------------
+
+Back to our example, we need to compute genotype posterior probabilities for all samples with ANGSD only on putative polymorphic sites.
+
+First, let us see how to perform a hard SNP/genotype calling in ANGSD, assigning individual genotypes.
+```
+angsd -P 4 -b $DIR/ALL_noCHB.bamlist -ref $REF -out Results/ALL \
+        -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
+        -minMapQ 20 -minQ 20 -minInd 30 -setMinDepth 30 -setMaxDepth 300 -doCounts 1 \
+        -GL 1 -doMajorMinor 1 -doMaf 1 -skipTriallelic 1 \
+        -SNP_pval 1e-3 \
+        -doGeno 3 -doPost 1 &> /dev/null
+```
+Open the output file:
+```
+less -S Results/ALL.geno.gz
+```
+The columns are: chromosome, position, major allele, minor allele, genotypes is 0,1,2 format.
+
+We have also generated estimates of the minor allele frequencies and these are stored in .mafs.gz file:
+```
+less -S Results/ALL.mafs.gz
+```
+The columns are: chromosome, position, major allele, minor allele, reference allele, allele frequency, p-value for SNP calling, number of individuals with data.
+
+However, since our data is low-depth, genotypes cannot be assigned with high confidence and therefore we want to use **genotype posterior probabilities** instead, using options `-doGeno 8 -doPost 1`.
+
+Let us build our command line, recalling what we have previously defined.
+Print out the called genotypes in allelic format (option 4) and the associated genotype probability (option 16, so the total value is 4+16=20) by using a uniform prior (-doPost 2):
+```
+angsd -P 4 -b $DIR/ALL_noCHB.bamlist -ref $REF -out Results/ALL \
+        -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
+        -minMapQ 20 -minQ 20 -minInd 30 -setMinDepth 30 -setMaxDepth 300 -doCounts 1 \
+        -GL 1 -doMajorMinor 1 -doMaf 1 -skipTriallelic 1 \
+        -SNP_pval 1e-3 \
+        -doGeno 20 -doPost 2 &> /dev/null
+```
+Open the file:
+```
+less -S Results/ALL.geno.gz
+```
+and you will see that now we have probabilities appended to all called genotypes.
+
+As you can see, many of the associated probabilities (<0.90) are low making the assignment of genotypes prone to errors.
+Probabilities can be further refined by using a HWE-based prior (option -doPost 1).
+Nevertheless any bias in genotype calling will then be downstreamed to all further analyses.
+
+------------------
+
+
+
+[HOME](https://github.com/mfumagalli/Copenhagen)
 

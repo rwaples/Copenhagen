@@ -52,7 +52,7 @@ Before running the exercises you need to set all correct paths, as shown [here](
 
 ## Agenda
 
-The rationale for the examples and exercises in the practical, as well as instructions on how to set all correct paths, can be found [here](Files/preparation.sh).
+The rationale for the examples and exercises in the practical, as well as instructions on how to set all correct paths, can be found [here](Files/preparation.md).
 
 
 ### Tuesday afternoon -  introduction to NGS data:
@@ -86,7 +86,7 @@ The rationale for the examples and exercises in the practical, as well as instru
 * Bias introduced by NGS data
 * Summary statistics from low-depth data
 
-#### [Practical] 10:30-12
+#### Practical 10:30-12
 
 * Selection scan based on genetic [differentiation](Files/day2a.md) from low-depth data
 * Assessing significance through [simulations](Files/day2b.md)

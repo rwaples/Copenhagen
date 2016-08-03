@@ -39,7 +39,7 @@ If so, is selection acting on the same variant as in East Asians?
 
 ------------------------
 
-
+Objectives:
 
 EDAR
 
@@ -48,6 +48,7 @@ goal day1: estimate allele frequencies of EDAR SNP in all pops (and genotype fre
 
 goal day2: compute PBS, run sims for testing, selscan for iHs?
 
+-----------------------------
 
 #### Preparation
 
@@ -57,8 +58,6 @@ More information about its rationale and implemented methods can be found [here]
 
 We will use 60 BAM files of human samples (of African, European, and Native American descent), a reference genome, and putative ancestral sequence.
 The human data represents a small genomic region (1MB on chromosome 11) extracted from the 1000 Genomes Project data set.
-
-## Preparation
 
 Please set the path for all programs and data we will be using.
 As an example these are my paths.
@@ -72,10 +71,11 @@ FASTME=/data/data/Software/fastme-2.1.4/src/fastme
 ```
 However, these paths have been sym-linked to your /usr/bin so they can be called by simply typing their name, e.g. `angsd`.
 
-If you downloaded the data using the provided script, this is what you should specify.
+Then link all the Data and sequences.
 ```
-REF=Data/ref.fa.gz
-ANC=Data/anc.fa.gz
+DATA=/data/data/tmp/Copenhagen/Data
+REF=$DATA/ref.fa.gz
+ANC=$ANC/anc.fa.gz
 ```
 
 

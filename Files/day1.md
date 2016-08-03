@@ -384,6 +384,126 @@ chromo	position	major	minor	ref	unknownEM	nInd
 11	61013836	C	A	C	0.020777	40
 ```
 
+How many SNPs?
+```
+zcat Results/ALL.mafs.gz | tail -n+2 | wc -l
+```
+
+As a general guidance, `-GL 1`, `-doMaf 1/2` and `-doMajorMinor 1` should be the preferred choice when data uncertainty is high.
+If interested in analyzing very low frequency SNPs, then `-doMaf 2` should be selected.
+When accurate information on reference sequence or outgroup are available, one can use `-doMajorMinor` to 4 or 5.
+Also, detecting variable sites based on their probability of being SNPs is generally a better choice than defining a threshold on the allele frequency.
+However, various cutoffs and a dedicated filtering should be perform to assess robustenss of your called SNPs.
+
+-------------------------
+
+**EXERCISE**
+
+Try varying the cutoff for SNP calling and record how many sites are predicted to be variable for each scenario.
+Identify which sites are not predicted to be variable anymore with a more stringent cutoff (e.g. between a pair of scenario), and plot their allele frequencies.
+
+```
+# iterate over some cutoffs
+for PV in 0.05 1e-2 1e-4 1e-6
+do
+        if [ $PV == 0.05 ]; then echo SNP_pval NR_SNPs; fi
+        angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL.$PV \
+		-uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
+		-minMapQ 20 -minQ 20 -minInd 30 -setMinDepth 210 -setMaxDepth 700 -doCounts 1 -sites sites.txt \
+		-GL 1 -doMajorMinor 1 -doMaf 1 -skipTriallelic 1 \
+		-SNP_pval $PV &> /dev/null
+	echo $PV `zcat Results/ALL.$PV.mafs.gz | tail -n+2 | wc -l`
+done
+```
+
+A possible output is (your numbers may be different):
+```
+SNP_pval NR_SNPs
+0.05 384
+1e-2 344
+1e-4 277
+1e-6 241
+```
+
+Which sites differ from 0.05 and 0.01? What is their frequency?
+This script will also print out the first 20 discordant sites (pK.EM is the p-value for the SNP calling test).
+```
+Rscript -e 'mafs1=read.table(gzfile("Results/ALL.1e-2.mafs.gz"), he=T, strings=F); mafs5=read.table(gzfile("Results/ALL.0.05.mafs.gz"), header=T, stringsAsFact=F); mafs5[!(mafs5[,2] %in% mafs1[,2]),][1:20,]; pdf(file="Results/diff_snpcall.pdf"); par(mfrow=c(1,2)); hist(as.numeric(mafs5[!(mafs5[,2] %in% mafs1[,2]),][,6]), main="Discordant SNPs", xlab="MAF (DAF)"); hist(as.numeric(mafs5[(mafs5[,2] %in% mafs1[,2]),][,6]), main="Concordant SNPs", xlab="MAF"); dev.off();'
+
+evince Results/diff_snpcall.pdf
+```
+
+Can you draw some conclusions from these results?
+Which frequencies are more difficult to estimate and therefore affect SNP calling?
+
+
+-----------------------
+
+------------------------
+
+**EXAMPLE**
+
+3) Estimate allele frequencies for SNPs in FADS genes of interest
+
+In ANGSD we can restrict our analyses on a subset of positions of interest using the `-sites` option.
+The positions we are looking at are the one found under selection in Inuit, shown [here](https://github.com/mfumagalli/WoodsHole/blob/master/Files/snps_inuit.png): 
+- 11 61627960 <br>
+- 11 61631510 <br>
+- 11 61632310 <br>
+- 11 61641717 <br>
+- 11 61624414 <br>
+- 11 61597212 <br>
+
+The file with these positions need to be formatted as (chromosome positions).
+```
+> snps.txt
+echo 11 61627960 >> snps.txt
+echo 11 61631510 >> snps.txt
+echo 11 61632310 >> snps.txt
+echo 11 61641717 >> snps.txt
+echo 11 61624414 >> snps.txt
+echo 11 61597212 >> snps.txt
+```
+Inspect the file.
+```
+cat snps.txt
+```
+
+We need to index this file in order for ANGSD to process it.
+```
+angsd sites index snps.txt
+```
+
+We are interested in calculating the derived allele frequencies, so are using the ancestral sequence to polarise the alleles.
+Create new lists of BAM files.
+```
+head -n 20 ALL.bamlist > LWK.sub.bamlist
+tail -n 20 ALL.bamlist > TSI.sub.bamlist
+cp Results/PEL_unadm.BAMs.txt PEL.sub.bamlist
+```
+
+Run ANGSD to compute allele frequencies.
+Here we change the filtering (more relaxed) since we are interested in outputting all sites.
+```
+for POP in LWK TSI PEL
+do
+        echo $POP
+        angsd -P 4 -b $POP.sub.bamlist -ref $REF -anc $ANC -out Results/$POP \
+                -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
+                -minMapQ 20 -minQ 20 -minInd 1 -setMinDepth 10 -setMaxDepth 500 -doCounts 1 \
+                -GL 1 -doMajorMinor 5 -doMaf 1 -skipTriallelic 1 \
+                -sites snps.txt &> /dev/null
+done
+```
+
+Inspect the results.
+```
+zcat Results/LWK.mafs.gz Results/TSI.mafs.gz Results/PEL.mafs.gz
+```
+
+Do you see any allele frequency differentiation?
+
+------------------------------------------
 
 #### Genotype calling
 
@@ -496,9 +616,6 @@ zcat Results/ALL.geno.gz | grep -1 - | wc -l
 
 Did you expect such difference compared to the case of HWE-based prior?
 
-
-
-
 --------------------------------
 
 Back to our example, we need to compute genotype posterior probabilities for all samples with ANGSD only on putative polymorphic sites.
@@ -547,6 +664,58 @@ Probabilities can be further refined by using a HWE-based prior (option -doPost 
 Nevertheless any bias in genotype calling will then be downstreamed to all further analyses.
 
 ------------------
+
+#### Genetic distances
+
+1) Investigate population structure (or clustering) of PEL samples (Peruvians), EUR (Europeans) and LWK (Africans).
+
+One solution would be to perform a PCA, MDS or some clustering based on genetic distances among samples.
+Then we can check whether some PEL fall within EUR/LWK or all PEL form a separate clade. 
+
+First, compute genotype posterior probabilities for all samples.
+ 
+```
+# Assuming HWE, without filtering based on probabilities, with SNP calling
+angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL \
+        -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
+        -minMapQ 20 -minQ 20 -minInd 30 -setMinDepth 210 -setMaxDepth 700 -doCounts 1 \
+        -GL 1 -doMajorMinor 1 -doMaf 1 -skipTriallelic 1 \
+        -SNP_pval 1e-3 \
+        -doGeno 8 -doPost 1 &> /dev/null
+```
+
+Record how many sites we retrieve.
+```
+N_SITES=`zcat Results/ALL.mafs.gz | tail -n+2 | wc -l`
+echo $N_SITES
+```
+
+Create a file with labels indicating the population of interest for each sample.
+```
+Rscript -e 'cat(paste(rep(c("LWK","TSI","PEL"),each=20), rep(1:20, 3), sep="_"), sep="\n", file="pops.label")'
+cat pops.label
+```
+
+With [ngsDist](https://github.com/fgvieira/ngsDist) we can computer pairwise genetic distances without relying on individual genotype calls.
+```
+ngsDist -verbose 1 -geno Results/ALL.geno.gz -probs -n_ind 60 -n_sites $N_SITES -labels pops.label -o Results/ALL.dist -n_threads 4
+less -S Results/ALL.dist
+```
+
+We can visualise the pairwise genetic distances in form of a tree.
+```
+fastme -D 1 -i Results/ALL.dist -o Results/ALL.tree -m b -n b &> /dev/null
+cat Results/ALL.tree
+```
+
+Plot the tree.
+```
+Rscript -e 'library(ape); library(phangorn); pdf(file="Results/ALL.tree.pdf"); plot(read.tree("Results/ALL.tree"), cex=0.5); dev.off();' &> /dev/null
+evince Results/ALL.tree.pdf
+```
+
+Therefore, PEL samples appear very close to EUR.
+The next step would be to compute admixture proportions in order to select a subset of putative Native American (unadmixed) samples.
 
 
 

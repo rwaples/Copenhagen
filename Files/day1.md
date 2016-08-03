@@ -1,22 +1,50 @@
 
-In this session you will learn how to build a command line in ANGSD to do:
-* post-mapping filtering
+In this session you will learn how to do:
+* basic post-mapping filtering
 * variant calling
 * allele frequency estimation
 * genotype calling
 
-**WORKFLOW**:
+For most of the examples, we will use the program [ANGSD](http://popgen.dk/wiki/index.php/ANGSD) (Analysis of Next Generation Sequencing Data) developed by Thorfinn Korneliussen and Anders Albrechtsen at the University of Copenhagen.
+More information about its rationale and implemented methods can be found [here](http://www.ncbi.nlm.nih.gov/pubmed/25420514).
 
-BASIC POST-MAPPING DATA > FILTERING
+According to its website *ANGSD is a software for analyzing next generation sequencing data. The software can handle a number of different input types from mapped reads to imputed genotype probabilities. Most methods take genotype uncertainty into account instead of basing the analysis on called genotypes. This is especially useful for low and medium depth data. The software is written in C++ and has been used on large sample sizes. This program is not for manipulating BAM/CRAM files, but solely a tool to perform various kinds of analysis. We recommend the excellent program SAMtools for outputting and modifying bamfiles.*
 
-In this part, we will show how to perform a basic filtering of sites, after the reads have been mapped or aligned.
+------------------
 
-COPY BITS FROM EXPLORE.MD WHICH LOOKS NICER
+#### Preparation
 
+We will use 80 BAM files of human samples (of African, European, East Asians, and Native American descent), a reference genome, and putative ancestral sequence.
+The human data represents a small genomic region (3M bp on chromosome 2) extracted from the 1000 Genomes Project data set.
 
-#### ANGSD
+To make things more interesting, we have downsampled our data to an average mean depth of *2X*.
 
-Here we will use ANGSD to analyse our data. To see a full list of options type
+Please set the path for all programs and data we will be using.
+As an example these are my paths.
+```
+SAMTOOLS=/data/data/Software/samtools-1.3
+NGSTOOLS=/data/Software/ngsTools
+ANGSD=/data/data/Software/angsd
+NGSDIST=$NGSTOOLS/ngsDist
+NGSADMIX=/data/data/Software/NGSadmix/NGSadmix
+FASTME=/data/data/Software/fastme-2.1.4/src/fastme
+```
+However, these paths have been sym-linked to your /usr/bin so they can be called by simply typing their name, e.g. `angsd`.
+
+You also need to provide the location of data and sequences:
+```
+DATA=/data/data/tmp/Copenhagen/Data
+REF=$DATA/ref.fa.gz
+ANC=$ANC/anc.fa.gz
+```
+
+--------------------------------------------------------------------------
+
+#### Data filtering
+
+First, we will learn how to build a command line in ANGSD, with the specific example of doing a basic post mapping filtering.
+
+To see a full list of options in ANGSD type:
 ```
 $ANGSD/angsd
 ```
@@ -66,8 +94,6 @@ ANGSD can accept several input files, as described [here](http://popgen.dk/angsd
 * Genotype likelihood/probability files
 * VCF
 
-#### Basic filtering post-mapping
-
 Here we show how ANGSD can also perform some basic filtering of the data.
 These filters are based on:
 
@@ -110,6 +136,26 @@ Examples for region specification:
 
 
 Some basic filtering consists in removing, for instance, read with low quality and/or with multiple hits, and this can be achieved using the parameters ```-uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1```.
+Let us build such command line.
+First we need to define input and output files:
+```
+$ANGSD/angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL \
+...
+```
+with `-b` we give the file including paths to all BAM files we need to analyse.
+`-P 4` says the we are going to use 4 threads.
+`-ref` specifies the reference sequence.
+`-out` states the prefix for all output files that will be generated.
+
+Next we need to define some basic filtering options.
+First we define filters based on reads quality.
+```
+# angsd -P 4 -b $DIR/ALL_noCHB.bamlist -ref $REF -out Results/ALL \
+        -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
+...
+```
+These filters will retain only uniquely mapping reads, not tagged as bad, considering only proper pairs, without trimming, and adjusting for indel/mapping (as in samtools).
+`-C 50` reduces the effect of reads with excessive mismatches, while `-baq 1` computes base alignment quality as explained here ([BAQ](http://samtools.sourceforge.net/mpileup.shtml)) used to rule out false SNPs close to INDELS.
 
 Also, you may want to remove reads with low mapping quality and sites with low quality or covered by few reads (low depth).
 Under these circumnstances, the assignment of individual genotypes and SNPs is problematics, and can lead to errors. 
@@ -120,11 +166,9 @@ We first derive the distribution of quality scores and depth on our data set usi
 ```
 angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL.qc \
         -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
-        -doQsDist 1 -doDepth 1 -doCounts 1 -maxDepth 1200
+        -doQsDist 1 -doDepth 1 -doCounts 1 -maxDepth 1000
 ```
-`-C 50` reduces the effect of reads with excessive mismatches, while `-baq 1` computes base alignment quality as explained here ([BAQ](http://samtools.sourceforge.net/mpileup.shtml)) used to rule out false SNPs close to INDELS.
-
-As an illustration here, ```-maxDepth 1200``` corresponds to a per-sample average depth of 20.
+As an illustration here, ```-maxDepth 1000``` corresponds to a per-sample average depth of 20.
 This option means that all sites with depth equal or greater than 1200 will be binned together.
 
 Have a look at the files generated:
@@ -176,73 +220,30 @@ Parameter | Meaning |
 -setMinDepth 210 | minimum total depth |
 -setMaxDepth 700 | minimum total depth |
 
--------------------
-
-Finally, for the rest of the analyses on SNP and genotype calling we are going to use only a small fraction of the entire data set, namely only the first 100k sites.
-Typically you can achieve these by setting `-rf` option in ANGSD but since our BAM files do not have a proper header, we have to specify each site we want to analyse, and create a BED file.
-This file can be generated with (knowning that our region is on chromosome 11 from 61M to 62M) and indexed as:
-```
-Rscript -e 'write.table(cbind(rep(11,100000), seq(61000001,61100000,1)), file="sites.txt", sep="\t", quote=F, row.names=F, col.names=F)'
-angsd sites index sites.txt
-```
-
-We can speed up random access to files by compressing them (for instance with bgzip in SAMtools). 
-This allow us to quickly seek to a particular part of the file without the need of parsing the whole file. 
-
-Now we can simply tell ANGSD to analyse only these sites using the option `-sites`.
-
----------------------
-
-### ADDITIONAL MATERIAL
+Specifically here we analyse only reads with a minimum mapping quality of 20, and bases with a minimum quality of 20 (the values are in phred scores).
+Also we specify that we are analysing only sites where we have data for half of the individuals (30) and minimum and maximum TOTAL depth of 30 and 300, respectively.
+`-doCounts 1` simply forces the calculation of depth.
 
 ANGSD can also compute more sophisticated metrics to filter out SNPs, as described [here](http://popgen.dk/angsd/index.php/SnpFilters), mostly based on:
-
 * strand bias
 * deviation from HWE
 * quality score bias
-
 The strand bias models are described [here](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3532123/). Some examples of strand biases, taken from the previously cited study, can be found [here](https://github.com/mfumagalli/WoodsHole/blob/master/Files/strand_bias.png).
 Different models are implemented, as seen [here](https://github.com/mfumagalli/WoodsHole/blob/master/Files/strand_bias_eq.png).
 
-These options are still under development and thus they will not be used during this session.
-Furthermore, since our global sample is a mix of populations, the HWE filtering is not appropriate.
-As a general guideline, a typical command line to report SNP statistics is:
-
-```
-angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL \
-	-uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
-	-minMapQ 20 -minQ 20 -minInd 30 -setMinDepth 210 -setMaxDepth 700 -doCounts 1 \
-	-doMaf 1 -doMajorMinor 1 -GL 1 -SNP_pval 1e-2 -hwe_pval 1 -doSnpStat 1
-```
-
-The output files are:
-```
-less -S Results/ALL.hwe.gz
-less -S Results/ALL.snpStat.gz
-```
-
-Moreover, additional filtering should be considered.
-For instance transitions (A<->G, C<->T) are more likely than transversions, so we expect the ts/tv ratio to be greater than 0.5.
-Several pipelines for preprocessing of sequencing data are available, for instance [here](https://github.com/MorrellLAB/sequence_handling). 
-
---------
-
-People at Ross-Ibarra lab (UC Davis) have developed a suite of programs to run ANGSD.
-This software is called [ANGSD-wrapper](https://github.com/mojaveazure/angsd-wrapper).
+We have now seen how to build a command line in ANGSD with the example of doing a basic post-mapping filtering.
 
 ----------------------------
 
-#### Estimation of allele frequencies
+#### Estimation of allele frequencies and SNP calling
 
-Furthermore, we want to restrict this analysis on a set of putative polymorphic sites (SNPs), as non-variable sites (across all samples) will not carry information regarding population structure or differentiation.
+We now want to estimate allele frequencies at each site, for the whole sample.
+In other words, at each site we want to to estimate (or count) how many copies of different alleles (two in case of biallelic variants) we observe in our sample (across all sequenced individuals).
+However with low depth data direct counting of individually assigned genotypes can lead to biased allele frequencies.
 
-This search can be firstly translated in the estimation of the allele frequency for each site.
-In other words, at each site we want to to estimate (or count) how many copies of different alleles (two in case of biallelic SNPs) we observe in our sample (across all sequenced individuals).
-
-ANGSD has an option to estimate **allele frequencies**:
-
+ANGSD has an option to estimate **allele frequencies** taking into account data uncertainty from genotype likelihoods:
 ```
-angsd -doMaf
+$ANGSD/angsd -doMaf
 ...
 -doMaf  0 (Calculate persite frequencies '.mafs.gz')
         1: Frequency (fixed major and minor)
@@ -265,9 +266,10 @@ Extras:
         -indFname       (null) (file containing individual inbreedcoeficients)
 NB These frequency estimators requires major/minor -doMajorMinor
 ```
+
 Therefore, the estimation of allele frequencies requires the specification of how to assign the major and minor alleles (if biallelic).
 ```
-angsd -doMajorMinor
+$ANGSD/angsd -doMajorMinor
 ...
         -doMajorMinor   0
         1: Infer major and minor from GL
@@ -281,7 +283,7 @@ angsd -doMajorMinor
 
 Finally, you need to specify which genotype likelihood model to use.
 ```
-angsd -GL
+$ANGSD/angsd -GL
 ...
         -GL=0:
         1: SAMtools
@@ -301,6 +303,47 @@ Filedumping:
         3: binary 3 times likelihood    .glf.gz
         4: text version (10 log likes)  .glf.gz
 ```
+A description of these different implementation can be found [here](http://www.popgen.dk/angsd/index.php/Genotype_likelihoods).
+The GATK model refers to the first GATK paper, SAMtools is somehow more sophisticated (non-independence of errors), SOAPsnp requires a reference sequence for recalibration of quality scores, SYK is error-type specific.
+For most applications and data, GATK and SAMtools models should give similar results.
+
+Therefore a possible command line might be:
+```
+$ANGSD/angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL \
+        -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
+        -minMapQ 20 -minQ 20 -minInd 40 -setMinDepth 40 -setMaxDepth 400 -doCounts 1 -sites sites.txt \
+        -GL 1 -doMajorMinor 4 -doMaf 1 -skipTriallelic 1 &> /dev/null
+```
+where we specify:
+* -GL 1: genotype likelihood model as in SAMtools
+* -doMajorMinor 4: force the major allele to be the reference (the minor is inferred)
+* -doMaf 1: major and minor are fixed
+
+What are the output files?
+```
+->"Results/ALL.arg"
+->"Results/ALL.mafs.gz"
+```
+`.args` file is a summary of all options used, while `.mafs.gz` file shows the allele frequencies computed at each site.
+
+Have a look at this file which contains estimates of allele frequency values.
+```
+zcat Results/ALL.mafs.gz | head
+```
+and you may see something like
+```
+chromo	position	major	minor	ref	knownEM	nInd
+11	61005992	C	A	C	0.000003	32
+11	61005993	C	A	C	0.000003	33
+11	61005994	A	C	A	0.000002	33
+11	61005995	G	A	G	0.000002	33
+11	61005996	C	A	C	0.000002	33
+11	61005997	C	A	C	0.000004	32
+11	61005998	T	A	T	0.000005	33
+11	61005999	G	A	G	0.000005	33
+11	61006000	G	A	G	0.000005	34
+```
+
 
 We may be interested in looking at allele frequencies only for sites that are actually variable in our sample.
 Therefore we want to perform a **SNP calling**.
@@ -311,23 +354,45 @@ There are two main ways to call SNPs using ANGSD with these options:
 ```
 Therefore we can consider assigning as SNPs sites whose estimated allele frequency is above a certain threhsold (e.g. the frequency of a singleton) or whose probability of being variable is above a specified value.
 
-#### SNP calling
+As an illustration, let us call SNPs by computing:
+ - genotype likelihoods using GATK method;
+ - major and minor alleles inferred from genotype likelihoods;
+ - frequency from known major allele but unknown minor;
+ - SNPs as those having MAF=>0.01.
 
+```
+$ANGSD/angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL \
+        -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
+        -minMapQ 20 -minQ 20 -minInd 30 -setMinDepth 210 -setMaxDepth 700 -sites sites.txt \
+        -GL 2 -doMajorMinor 1 -doMaf 2 -skipTriallelic 1  \
+        -minMaf 0.01 &> /dev/null
+```
+
+You can have a look at the results:
+```
+zcat Results/ALL.mafs.gz | head
+
+chromo	position	major	minor	ref	unknownEM	nInd
+11	61006040	G	A	G	0.015298	41
+11	61006070	G	A	G	0.017361	41
+11	61007659	T	G	T	0.014695	31
+11	61007783	A	C	A	0.013398	38
+11	61007804	T	C	T	0.098128	37
+11	61007900	A	C	A	0.011518	40
+11	61008088	T	A	T	0.011197	43
+11	61008109	C	T	C	0.014019	37
+11	61013836	C	A	C	0.020777	40
+```
 
 
 #### Genotype calling
 
-We want to investigate the population structure our samples: PEL,(Peruvians), TSI (Europeans), LWK (Africans), and CHB (East Asians).
-In particular we are interested to assess whether our PEL samples are genetically admixed with TSI and LWK.
+Here we will explore several ways to call genotypes from sequencing data, once SNPs have been assigned.
+We need to assign genotypes (or their associated probabilities) to each site for each individual.
 
-One solution would be to perform a Principal Component Analysis (PCA), Multidimensional Scaling (MDS) or some clustering based on genetic distances among samples.
-Then we can check whether some PEL fall within EUR/LWK or all PEL form a separate clade.
-
-To do this, we first need to assign genotypes (or their associated probabilities).
-We now see how to use ANGSD to call genotypes.
 The specific option is `-doGeno`:
 ```
-angsd -doGeno
+$ANGSD/angsd -doGeno
 ...
 -doGeno 0
         1: write major and minor
@@ -353,7 +418,7 @@ If we want to print the major and minor alleles as well then we set `-doGeno 3`.
 
 To calculate the posterior probability of genotypes we need to define a model.
 ```
-angsd -doPost
+$ANGSD/angsd -doPost
 
 ...
 -doPost 0       (Calculate posterior prob 3xgprob)
@@ -364,15 +429,75 @@ angsd -doPost
 `-doPost 1` uses the estimate per-site allele frequency as a prior for genotype proportions, assuming Hardy Weinberg Equilibrium.
 When the assumption of HWE is not valid, you can use an estimate of the inbreeding coefficient, for instance calculated using [ngsF](https://github.com/fgvieira/ngsF).
 
-For instance, recalling what previously shown as input/output/filtering options, a command line to call genotypes would be:
+A typical command for genotype calling assuming HWE is:
+
 ```
-# angsd -P 4 -b $DIR/ALL_noCHB.bamlist -ref $REF -out Results/ALL \
+angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL \
+	-uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
+	-minMapQ 20 -minQ 20 -minInd 30 -setMinDepth 210 -setMaxDepth 700 -doCounts 1 -sites sites.txt\
+	-GL 1 -doMajorMinor 1 -doMaf 2 -skipTriallelic 1 \
+	-SNP_pval 1e-3 \
+	-doGeno 3 -doPost 1 -postCutoff 0 &> /dev/null
+```
+
+Have a look at the output file:
+```
+less -S Results/ALL.geno.gz
+```
+
+How many sites have at least one missing genotype?
+```
+zcat Results/ALL.geno.gz | grep -1 - | wc -l
+```
+Why is that?
+
+You can control how to set missing genotype when their confidence is low with `-postCutoff`.
+For instance, we can set as missing genotypes when their (highest) genotype posterior probability is below 0.95:
+
+```
+angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL \
+	-uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
+	-minMapQ 20 -minQ 20 -minInd 30 -setMinDepth 210 -setMaxDepth 700 -doCounts 1 -sites sites.txt\
+	-GL 1 -doMajorMinor 1 -doMaf 1 -skipTriallelic 1 \
+	-SNP_pval 1e-2 \
+	-doGeno 3 -doPost 1 -postCutoff 0.95 &> /dev/null
+```
+
+How many sites do we have in total?
+How many sites have at least one missing genotype now?
+```
+zcat Results/ALL.geno.gz | wc -l
+zcat Results/ALL.geno.gz | grep -1 - | wc -l
+```
+
+Why are there some many sites with missing genotypes?
+
+The mean depth per sample is around 7/8, therefore genotypes cannot be assigned with very high confidence.
+
+Setting this threshold depends on the mean sequencing depth of your data, as well as your application.
+For some analyses you need to work only with high quality genotypes (e.g. measure of proportion of shared SNPs for gene flow estimate), while for others you can be more relaxed (e.g. estimate of overall nucleotide diversity).
+We will show later how to accurately estimate summary statistics with low-depth data.
+
+If we use a uniform prior, then the command line requires `-doPost 2`:
+
+```
+angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL \
         -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
-        -minMapQ 20 -minQ 20 -minInd 30 -setMinDepth 30 -setMaxDepth 300 -doCounts 1 \
-        -doGeno 3 -doPost 1
-        ...
+        -minMapQ 20 -minQ 20 -minInd 30 -setMinDepth 210 -setMaxDepth 700 -doCounts 1 -sites sites.txt\
+        -GL 1 -doMajorMinor 1 -doMaf 1 -skipTriallelic 1 \
+        -SNP_pval 1e-2 \
+        -doGeno 3 -doPost 2 -postCutoff 0.95 &> /dev/null
 ```
-This command will not run, but it serves as an illustration of how to set parameters for genotype calling.
+
+How many sites have at least one missing genotype in this case?
+```
+zcat Results/ALL.geno.gz | grep -1 - | wc -l
+```
+
+Did you expect such difference compared to the case of HWE-based prior?
+
+
+
 
 --------------------------------
 

@@ -68,9 +68,9 @@ wget http://hgdownload.cse.ucsc.edu/gbdb/hg19/1000Genomes/phase3/ALL.chr$CHROM.p
 echo Processing VCF file...
 VCF=ALL.chr$CHROM.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz
 
-# only 3Mbp
-START=108000000
-END=111000000
+# only 1Mbp
+START=109000000
+END=110000000
 
 # whole region for selscan
 $VCFLIB/vcffilter -f "VT = SNP" -f "AC > 1" -f "QUAL > 20" -f "DP > 20" -f "DP < 40000" -r $CHROM:$START-$END $VCF > ALL.chr$CHROM.tmp.vcf

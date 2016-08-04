@@ -28,6 +28,8 @@ ANGSD=/data/data/Software/angsd
 NGSDIST=$NGSTOOLS/ngsDist
 NGSADMIX=/data/data/Software/NGSadmix/NGSadmix
 FASTME=/data/data/Software/fastme-2.1.4/src/fastme
+MS=/data/data/Software/msdir/ms
+SS=/data/data/Software/selscan/bin/linux
 ```
 However, these paths have been sym-linked to your /usr/bin so they can be called by simply typing their name, e.g. `angsd`.
 
@@ -101,11 +103,16 @@ These filters are based on:
 * SNP quality, see [here](http://popgen.dk/angsd/index.php/SnpFilters)
 * sites, see [here](http://popgen.dk/angsd/index.php/Sites)
 
+Have a look at our list of BAM files:
+```
+cat ALL.bamlist
+wc -l ALL.bamlist
+```
+
 If the input file is in BAM format, the possible options are:
 ```
 $ANGSD/angsd -bam
 ...
----------------
 parseArgs_bambi.cpp: bam reader:
 	-bam/-b		(null)	(list of BAM/CRAM files)
 	-i		(null)	(Single BAM/CRAM file)
@@ -117,6 +124,8 @@ parseArgs_bambi.cpp: bam reader:
 	-minMapQ	0	Discard reads with mapping quality below
 	-minQ		13	Discard bases with base quality below
 	-trim		0	Number of based to discard at both ends of the reads
+	-trim		0	Number of based to discard at 5 ends of the reads
+	-trim		0	Number of based to discard at 3 ends of the reads
 	-only_proper_pairs 1	Only use reads where the mate could be mapped
 	-C		0	adjust mapQ for excessive mismatches (as SAMtools), supply -ref
 	-baq		0	adjust qscores around indels (as SAMtools), supply -ref
@@ -134,12 +143,11 @@ Examples for region specification:
 		chr:site	Use single site on chromosome: chr
 ```
 
-
 Some basic filtering consists in removing, for instance, read with low quality and/or with multiple hits, and this can be achieved using the parameters ```-uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1```.
 Let us build such command line.
 First we need to define input and output files:
 ```
-$ANGSD/angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL \
+# $ANGSD/angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL \
 ...
 ```
 with `-b` we give the file including paths to all BAM files we need to analyse.
@@ -150,26 +158,25 @@ with `-b` we give the file including paths to all BAM files we need to analyse.
 Next we need to define some basic filtering options.
 First we define filters based on reads quality.
 ```
-# angsd -P 4 -b $DIR/ALL_noCHB.bamlist -ref $REF -out Results/ALL \
-        -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
+# $ANGSD/angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL \
+#        -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
 ...
 ```
 These filters will retain only uniquely mapping reads, not tagged as bad, considering only proper pairs, without trimming, and adjusting for indel/mapping (as in samtools).
 `-C 50` reduces the effect of reads with excessive mismatches, while `-baq 1` computes base alignment quality as explained here ([BAQ](http://samtools.sourceforge.net/mpileup.shtml)) used to rule out false SNPs close to INDELS.
 
 Also, you may want to remove reads with low mapping quality and sites with low quality or covered by few reads (low depth).
-Under these circumnstances, the assignment of individual genotypes and SNPs is problematics, and can lead to errors. 
+Under these circumnstances, the assignment of individual genotypes and SNPs is problematic, and can lead to errors. 
 
-However, it is necessary to know the overall distribution of per-site depth, in order to avoid filtering too many sites.
+However, it is necessary to know the overall distribution of per-site depth, in order to avoid filtering too many (or few) sites.
 We first derive the distribution of quality scores and depth on our data set using ```-doQsDist 1 -doDepth 1```.
-
 ```
-angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL.qc \
+$ANGSD/angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL.qc \
         -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
-        -doQsDist 1 -doDepth 1 -doCounts 1 -maxDepth 1000
+        -doQsDist 1 -doDepth 1 -doCounts 1 -maxDepth 800 -minQ 0 &> /dev/null
 ```
-As an illustration here, ```-maxDepth 1000``` corresponds to a per-sample average depth of 20.
-This option means that all sites with depth equal or greater than 1200 will be binned together.
+As an illustration here, ```-maxDepth 800``` corresponds to a per-sample average depth of 10.
+This option means that all sites with depth equal or greater than 800 will be binned together.
 
 Have a look at the files generated:
 ```
@@ -187,13 +194,12 @@ ls Results/*
 less -S Results/ALL.qc.qs
 # counts of per-sample depth
 less -S Results/ALL.qc.depthSample 
-wc -l Results/ALL.qc.depthSample # 60 Results/ALL.qc.depthSample
+wc -l Results/ALL.qc.depthSample # 80
 # counts of global depth
 less -S Results/ALL.qc.depthGlobal 
 ```
 
 It is convenient to compute the percentiles of these distributions (and visualize them) in order to make an informative decision on the threshold values we will use for our filtering.
-
 ```
 Rscript Scripts/plotQC.R Results/ALL.qc 2> /dev/null
 ```

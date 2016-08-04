@@ -13,8 +13,8 @@ echo Is this your path to VCFlib? $VCFLIB
 
 # chrom start end
 CHROM=2
-START=108000000
-END=1110000000
+START=109000000
+END=110000000
 
 mkdir Data
 mkdir Results
@@ -36,24 +36,29 @@ ls Data/PEL.BAMs/*.bam > PEL.bamlist
 
 # download ancestral sequence
 echo Downloading and processing ancestral sequence...
-wget ftp://ftp.ensembl.org/pub/release-65/fasta/ancestral_alleles/homo_sapiens_ancestor_GRCh37_e65.tar.bz
-tar xjf homo_sapiens_ancestor_GRCh37_e65.tar.bz
-cp homo_sapiens_ancestor_GRCh37_e65/homo_sapiens_ancestor_$CHROM.fa Data/tmp.fa
-sed "1s/.*/>2/" Data/tmp.fa > Data/anc.fa
-rm Data/tmp.fa
+#wget ftp://ftp.ensembl.org/pub/release-65/fasta/ancestral_alleles/homo_sapiens_ancestor_GRCh37_e65.tar.bz
+#tar xjf homo_sapiens_ancestor_GRCh37_e65.tar.bz
+#cp homo_sapiens_ancestor_GRCh37_e65/homo_sapiens_ancestor_$CHROM.fa Data/tmp.fa
+#sed "1s/.*/>2/" Data/tmp.fa > Data/anc.fa
+#rm Data/tmp.fa
+#$BGZIP Data/anc.fa
+#$SAMTOOLS faidx Data/anc.fa.gz
+#rm -rf homo_sapiens_ancestor_GRCh37_e65*
+
+wget http://popgen.dk/software/download/angsd/hg19ancNoChr.fa.gz
+zcat hg19ancNoChr.fa.gz > Data/anc.fa
 $BGZIP Data/anc.fa
 $SAMTOOLS faidx Data/anc.fa.gz
-rm -rf homo_sapiens_ancestor_GRCh37_e65*
+rm hg19ancNoChr.fa.gz
+
 
 # download reference sequence
 echo Downloading and processing reference sequence...
 wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz &> /dev/null
-zcat human_g1k_v37.fasta.gz > Data/tmp.fa 2> /dev/null
-$SAMTOOLS faidx Data/tmp.fa
-$SAMTOOLS faidx Data/tmp.fa $CHROM > Data/ref.fa
+zcat human_g1k_v37.fasta.gz > Data/ref.fa 2> /dev/null
 $BGZIP Data/ref.fa
 $SAMTOOLS faidx Data/ref.fa.gz
-rm Data/tmp.fa
+rm human_g1k_v37.fasta.gz
 
 # download VCF files
 echo Downloading VCF file...
@@ -63,9 +68,9 @@ wget http://hgdownload.cse.ucsc.edu/gbdb/hg19/1000Genomes/phase3/ALL.chr$CHROM.p
 echo Processing VCF file...
 VCF=ALL.chr$CHROM.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz
 
-# only 1Mbp
-START=109000000
-END=110000000
+# only 3Mbp
+START=108000000
+END=111000000
 
 # whole region for selscan
 $VCFLIB/vcffilter -f "VT = SNP" -f "AC > 1" -f "QUAL > 20" -f "DP > 20" -f "DP < 40000" -r $CHROM:$START-$END $VCF > ALL.chr$CHROM.tmp.vcf

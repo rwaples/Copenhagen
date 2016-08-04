@@ -1,17 +1,6 @@
 
 echo Retrieving file names...
-
-# EDAR is our target gene
-# chr2:109,510,927-109,605,828
-
-# sample size
 NS=20
-
-# chrom start end
-CHROM=$1
-START=$2
-END=$3
-
 # get IDs 
 for POP in LWK TSI CHB PEL;
 do
@@ -42,7 +31,7 @@ do
 	do
 		NAME=`echo -n $i | tail -c 58`
 		echo $NAME
-		samtools view -s 0.25 -h ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/$i $CHROM:$START-$END > Data/$POP.BAMs$NAME 2> /dev/null
+		samtools view -s 0.25 -h ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/$i 11:61000000-62000000 > Data/$POP.BAMs$NAME 2> /dev/null
 		#samtools index $POP.BAMs/$NAME
 	done
 done

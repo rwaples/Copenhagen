@@ -21,7 +21,7 @@ plotGenes<-function(chr,min.pos,max.pos){
   cexlab=1.5
   adj = 0
 
-  filein="/gdc_home5/groups/bag2016/wednesday/Files/refGene.txt.gz"
+  filein="Files/refGene.txt.gz"
 
   dat<-read.table(filein,as.is=T,head=T,comment.char="")
   xx2 = dat[dat[,"chrom"]==paste("chr",chr,sep="") & dat[,"cdsStart"]<max.pos*1e6 & dat[,"cdsEnd"] >min.pos*1e6,]
@@ -86,8 +86,9 @@ cat("Maximum PBS value:", max(pbs$PBS2, na.rm=T), "\n")
 plot(pbs$midPos/1e6, pbs$PBS2, type ="l", col="orange",ylab = "PBS", xlab=paste("Chromosome",pbs$chr[1]), main="PBS scan" , lwd=1, xaxt="n",cex.main = 0.9, cex.axis = 0.6, cex.lab = 0.68 ) #orange
 
 lines(pbs$midPos/1e6, pbs$PBS1, col="blue", lwd=1)
+cat("Maximum PBS value (for TSI):", max(pbs$PBS1, na.rm=T), "\n")
 
-legend("topright", legen=c("PEL","CHB"), col=c("orange", "blue"), lty=1)
+legend("topright", legen=c("PEL","TSI"), col=c("orange", "blue"), lty=1)
 
     #title(ylab="Selection Statistics", line=2.2, cex.lab=0.69)
     #abline(h=1,lty=2,col="grey",lwd=1)

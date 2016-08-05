@@ -667,9 +667,11 @@ Why do we observe such a difference in estimates?
 
 -----------------------------------
 
+**OPTIONAL**
+
 #### Admixture
 
-**IMPORTANT NOTE**: Please skim this part if already covered during other practicals but be sure to run the commands as you will need these output files to perform the remaining analyses.
+**IMPORTANT NOTE**: These commands are given as a mere example as, in practise, such analyses should be performed on larger genomic regions.
 
 We want to select only a subset of PEL samples with high Native American ancestry.
 We use ngsAdmix, which again works on genotype probabilities and not on individual calls.
@@ -717,13 +719,13 @@ Now we have a subset of putative Native American samples.
 Then, we could perform all analyses considering only these samples.
 
 
-
-
 ------------------
 
 **OPTIONAL**
 
 #### Genetic distances
+
+**IMPORTANT NOTE**: These commands are given as a mere example as, in practise, such analyses should be performed on larger genomic regions.
 
 Genotype probabilities can be used also to infer the structure of your population.
 For instance, in our example, they can used to assess whether PEL samples are indeed admixed.

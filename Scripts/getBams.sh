@@ -1,4 +1,8 @@
 
+CHROM=$1
+START=$2
+END=$3
+
 echo Retrieving file names...
 NS=20
 # get IDs 
@@ -31,8 +35,7 @@ do
 	do
 		NAME=`echo -n $i | tail -c 58`
 		echo $NAME
-		samtools view -s 0.25 -h ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/$i 11:61000000-62000000 > Data/$POP.BAMs$NAME 2> /dev/null
-		#samtools index $POP.BAMs/$NAME
+		samtools view -s 0.25 -h ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/$i $CHROM:$START-$END > Data/$POP.BAMs$NAME 2> /dev/null
 	done
 done
 

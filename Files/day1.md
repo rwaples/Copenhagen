@@ -396,6 +396,7 @@ chromo	position	major	minor	ref	unknownEM	nInd
 2	109000573	C	A	C	0.010295	47
 2	109000721	T	C	T	0.017223	43
 ```
+The columns are: chromosome, position, major allele, minor allele, reference allele, allele frequency, p-value for SNP calling (if -SNP-pval was called), number of individuals with data.
 
 How many entries (potential SNps) you have?
 ```
@@ -569,6 +570,7 @@ Have a look at the output file:
 ```
 less -S Results/PEL.geno.gz
 ```
+The columns are: chromosome, position, major allele, minor allele, genotypes is 0,1,2 format.
 
 How many sites have at least one missing genotype?
 ```
@@ -602,128 +604,120 @@ Setting this threshold depends on the mean sequencing depth of your data, as wel
 For some analyses you need to work only with high quality genotypes (e.g. measure of proportion of shared SNPs for gene flow estimate), while for others you can be more relaxed (e.g. estimate of overall nucleotide diversity).
 We will show later how to accurately estimate summary statistics with low-depth data.
 
-If we use a uniform prior, then the command line requires `-doPost 2`:
-```
-$ANGSD/angsd -P 4 -b PEL.bamlist -ref $REF -out Results/PEL \
-        -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
-        -minMapQ 20 -minQ 20 -minInd 10 -setMinDepth 10 -setMaxDepth 100 -doCounts 1 \
-        -GL 1 -doMajorMinor 1 -doMaf 2 -skipTriallelic 1 \
-        -SNP_pval 1e-3 \
-        -doGeno 3 -doPost 2 -postCutoff 0.95 &> /dev/null
-```
-
-How many sites have at least one missing genotype in this case?
-```
-zcat Results/PEL.geno.gz | grep -1 - | wc -l
-```
-
-In general, a HWE prior will tend to lower the number of missed genotypes, as posterior probabilities 
-
 --------------------------------
 
 **EXAMPLE**
 
-Back to our example, we need to compute genotype posterior probabilities for all samples with ANGSD only on putative polymorphic sites.
+Back to our example of functional variants in EDAR, we want to assign individual genotypes by first computing genotype posterior probabilities for all samples.
+Finally we will calculate allele frequencies based on assigned genotypes.
 
-compute allele frequencies in PEL using called genotypes....
+As previously done, let us perform a genotype calling in ANGSD:
+```
+for POP in LWK TSI CHB PEL
+do
+        echo $POP
+        $ANGSD/angsd -P 4 -b $POP.bamlist -ref $REF -anc $ANC -out Results/$POP \
+                -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
+                -minMapQ 20 -minQ 20 -minInd 10 -setMinDepth 10 -setMaxDepth 100 -doCounts 1 \
+                -GL 1 -doMajorMinor 5 -doMaf 1 -skipTriallelic 1 \
+		-doGeno 3 -doPost 2 -postCutoff 0.50 \
+                -sites snp.txt &> /dev/null
+done
+```
+Note that, as an illustration, here we used a uniform prior (not HWE) with `-doPost 2` with a threshold for setting missing genotypes to 0.50.
 
-First, let us see how to perform a hard SNP/genotype calling in ANGSD, assigning individual genotypes.
+Open the output files:
 ```
-angsd -P 4 -b $DIR/ALL_noCHB.bamlist -ref $REF -out Results/ALL \
-        -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
-        -minMapQ 20 -minQ 20 -minInd 30 -setMinDepth 30 -setMaxDepth 300 -doCounts 1 \
-        -GL 1 -doMajorMinor 1 -doMaf 1 -skipTriallelic 1 \
-        -SNP_pval 1e-3 \
-        -doGeno 3 -doPost 1 &> /dev/null
+for POP in LWK TSI CHB PEL
+do
+	echo $POP
+	zcat Results/$POP.geno.gz
+done
 ```
-Open the output file:
-```
-less -S Results/ALL.geno.gz
-```
-The columns are: chromosome, position, major allele, minor allele, genotypes is 0,1,2 format.
 
-We have also generated estimates of the minor allele frequencies and these are stored in .mafs.gz file:
-```
-less -S Results/ALL.mafs.gz
-```
-The columns are: chromosome, position, major allele, minor allele, reference allele, allele frequency, p-value for SNP calling, number of individuals with data.
+What is the derived allele frequency for each population?
 
-However, since our data is low-depth, genotypes cannot be assigned with high confidence and therefore we want to use **genotype posterior probabilities** instead, using options `-doGeno 8 -doPost 1`.
+We have a lot of missing data.
+Try to calculate allele frequencies in PEL by using a HWE-prior and comment on the results (e.g. which are the genotypic states more difficult to assign?).
 
-Let us build our command line, recalling what we have previously defined.
-Print out the called genotypes in allelic format (option 4) and the associated genotype probability (option 16, so the total value is 4+16=20) by using a uniform prior (-doPost 2):
 ```
-angsd -P 4 -b $DIR/ALL_noCHB.bamlist -ref $REF -out Results/ALL \
-        -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
-        -minMapQ 20 -minQ 20 -minInd 30 -setMinDepth 30 -setMaxDepth 300 -doCounts 1 \
-        -GL 1 -doMajorMinor 1 -doMaf 1 -skipTriallelic 1 \
-        -SNP_pval 1e-3 \
-        -doGeno 20 -doPost 2 &> /dev/null
+for POP in LWK TSI CHB PEL
+do
+	$ANGSD/angsd -P 4 -b $POP.bamlist -ref $REF -anc $ANC -out Results/$POP \
+                -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
+                -minMapQ 20 -minQ 20 -minInd 10 -setMinDepth 10 -setMaxDepth 100 -doCounts 1 \
+                -GL 1 -doMajorMinor 5 -doMaf 1 -skipTriallelic 1 \
+                -doGeno 3 -doPost 1 -postCutoff 0.50 \
+                -sites snp.txt 
+done
 ```
-Open the file:
-```
-less -S Results/ALL.geno.gz
-```
-and you will see that now we have probabilities appended to all called genotypes.
 
-As you can see, many of the associated probabilities (<0.90) are low making the assignment of genotypes prone to errors.
-Probabilities can be further refined by using a HWE-based prior (option -doPost 1).
-Nevertheless any bias in genotype calling will then be downstreamed to all further analyses.
+```
+for POP in LWK TSI CHB PEL
+do
+        echo $POP
+        zcat Results/$POP.geno.gz
+done
+```
+
+For instance, we have 0/40 in LWK and TSI, 40/40 in CHB, and 14/20=0.70 in PEL.
+Recall that we previously estimated a minor allele frequency of 0.55 in PEL without assigning individuals.
+
+Why do we observe such a difference in estimates?
 
 ------------------
 
+**OPTIONAL**
+
 #### Genetic distances
 
-1) Investigate population structure (or clustering) of PEL samples (Peruvians), EUR (Europeans) and LWK (Africans).
+Genotype probabilities can be used also to infer the structure of your population.
+For instance, in our example, they can used to assess whether PEL samples are indeed admixed.
 
-One solution would be to perform a PCA, MDS or some clustering based on genetic distances among samples.
-Then we can check whether some PEL fall within EUR/LWK or all PEL form a separate clade. 
+We can compute genetic distances as a basis for population clustering driectly from genotype probabilities, and not from assigned genotypes as we have seen how problematic these latters can be at low-depth.
 
-First, compute genotype posterior probabilities for all samples.
- 
+First, we compute genotype posterior probabilities jointly for all samples:
 ```
 # Assuming HWE, without filtering based on probabilities, with SNP calling
-angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL \
+$ANGSD/angsd -P 4 -b ALL.bamlist -ref $REF -out Results/ALL \
         -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
-        -minMapQ 20 -minQ 20 -minInd 30 -setMinDepth 210 -setMaxDepth 700 -doCounts 1 \
+        -minMapQ 20 -minQ 20 -minInd 40 -setMinDepth 50 -setMaxDepth 250 -doCounts 1 \
         -GL 1 -doMajorMinor 1 -doMaf 1 -skipTriallelic 1 \
         -SNP_pval 1e-3 \
         -doGeno 8 -doPost 1 &> /dev/null
 ```
 
-Record how many sites we retrieve.
+Next we record how many sites we retrieve.
 ```
 N_SITES=`zcat Results/ALL.mafs.gz | tail -n+2 | wc -l`
 echo $N_SITES
 ```
 
-Create a file with labels indicating the population of interest for each sample.
+Then we create a file with labels indicating the population of interest for each sample.
 ```
-Rscript -e 'cat(paste(rep(c("LWK","TSI","PEL"),each=20), rep(1:20, 3), sep="_"), sep="\n", file="pops.label")'
-cat pops.label
+Rscript -e 'cat(paste(rep(c("LWK","TSI","CHB","PEL"),each=20), rep(1:20, 4), sep="_"), sep="\n", file="Data/pops.label")'
+cat Data/pops.label
 ```
 
-With [ngsDist](https://github.com/fgvieira/ngsDist) we can computer pairwise genetic distances without relying on individual genotype calls.
+With [ngsDist](https://github.com/fgvieira/ngsDist) we can compute pairwise genetic distances without relying on individual genotype calls.
 ```
-ngsDist -verbose 1 -geno Results/ALL.geno.gz -probs -n_ind 60 -n_sites $N_SITES -labels pops.label -o Results/ALL.dist -n_threads 4
+$NGSDIST/ngsDist -verbose 1 -geno Results/ALL.geno.gz -probs -n_ind 80 -n_sites $N_SITES -labels Data/pops.label -o Results/ALL.dist -n_threads 4
 less -S Results/ALL.dist
 ```
 
 We can visualise the pairwise genetic distances in form of a tree.
 ```
-fastme -D 1 -i Results/ALL.dist -o Results/ALL.tree -m b -n b &> /dev/null
+$FASTME -D 1 -i Results/ALL.dist -o Results/ALL.tree -m b -n b &> /dev/null
 cat Results/ALL.tree
 ```
 
-Plot the tree.
+Finally, we plot the tree.
 ```
 Rscript -e 'library(ape); library(phangorn); pdf(file="Results/ALL.tree.pdf"); plot(read.tree("Results/ALL.tree"), cex=0.5); dev.off();' &> /dev/null
 evince Results/ALL.tree.pdf
 ```
 
-Therefore, PEL samples appear very close to EUR.
 The next step would be to compute admixture proportions in order to select a subset of putative Native American (unadmixed) samples.
-
 
 
 [HOME](https://github.com/mfumagalli/Copenhagen)

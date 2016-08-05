@@ -7,7 +7,7 @@ args=commandArgs(T)
 simfile=args[1]
 rm(args)
 
-source("/gdc_home5/groups/bag2016/wednesday/Scripts/popgen.R")
+source("Scripts/popgen.R")
 
 nsam=80 # change this eventually
 haplos=readMs2(simfile, nsam)

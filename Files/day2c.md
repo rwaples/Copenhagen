@@ -1,5 +1,5 @@
 
-We have some suggestive results pointing towards selection acting in the FADS region based on patterns of genetic differentiation against East Asians and Europeans.
+We have some suggestive results pointing towards selection acting in EDAR based on patterns of genetic differentiation against Native Americans and Europeans.
 However, we employed low-depth data and our analyses were not based on called genotypes.
 Therefore, we did not have the power, for instance, to identify the causal variant (if any) and patterns of haplotype distribution.
 
@@ -16,14 +16,13 @@ According to its manual *[these] statistics are designed to use phased genotypes
 
 As an illustration, we are here calculating nSL.
 Note that we have already performed a filtering on these VCF files.
-First, load the selscan module and then look at the help page:
+First, look at the options in selscan:
 ```
-module load selscan
-selscan --help
+$SS/selscan --help
 ```
 The basic usage of selscan to compute nSL from VCF file is:
 ```
-selscan --nsl --vcf $DIR/Data/PEL.chr11.vcf --out Results/PEL
+$SS/selscan --nsl --vcf Data/PEL.chr2.vcf --out Results/PEL
 ```
 As you can see, unlike for iHS and EHH, we are not required to provide a genetic map since values are computed in windows based on physical distances.
 
@@ -33,7 +32,7 @@ It is also common to filter out variant with very low frequency.
 
 Therefore our command line might be:
 ```
-selscan --nsl --vcf $DIR/Data/PEL.chr11.vcf --out Results/PEL --max-extend-nsl 200 --maf 0.02
+$SS/selscan --nsl --vcf Data/PEL.chr2.vcf --out Results/PEL --max-extend-nsl 200 --maf 0.02
 ```
 Have a look at the output file, knowning that the header is:
 `< locusID > < physicalPos > < ’1 ’ freq > <sl1 > <sl0 > < unstandardized nSL >`
@@ -44,7 +43,7 @@ less -S Results/PEL.nsl.out
 Finally, these unstandardized scores are normalized in allele frequency bins across the entire genome.
 This can be achieved by the extra command `norm`:
 ```
-norm --help
+$SS/norm --help
 ...
 --bins <int>: The number of frequency bins in [0,1] for score normalization.
         Default: 100
@@ -52,7 +51,7 @@ norm --help
 ```
 Thus, our command would be (note tha ihs and nsl normalisation are equivalent):
 ```
-norm --ihs --files Results/PEL.nsl.out --bins 20
+$SS/norm --ihs --files Results/PEL.nsl.out --bins 20
 ```
 The output file is called `Results/PEL.nsl.out.20bins.norm`.
 ```
@@ -62,16 +61,16 @@ In theory, we should perform the normalization on genome-wide data (or at least 
 
 We can calculate nSL for our other populations, CHB and CLM.
 ```
-selscan --nsl --vcf $DIR/Data/CHB.chr11.vcf --out Results/CHB --max-extend-nsl 200 --maf 0.02
-norm --ihs --files Results/CHB.nsl.out --bins 20
-selscan --nsl --vcf $DIR/Data/CLM.chr11.vcf --out Results/CLM --max-extend-nsl 200 --maf 0.02
-norm --ihs --files Results/CLM.nsl.out --bins 20
+$SS/selscan --nsl --vcf Data/CHB.chr2.vcf --out Results/CHB --max-extend-nsl 200 --maf 0.02
+$SS/norm --ihs --files Results/CHB.nsl.out --bins 20
+$SS/selscan --nsl --vcf Data/CLM.chr2.vcf --out Results/CLM --max-extend-nsl 200 --maf 0.02
+$SS/norm --ihs --files Results/CLM.nsl.out --bins 20
 ```
 We can plot these results:
 ```
-Rscript $DIR/Scripts/plotnSL.R Results/PEL.nsl.out.20bins.norm Results/PEL.nsl.pdf
-Rscript $DIR/Scripts/plotnSL.R Results/CHB.nsl.out.20bins.norm Results/CHB.nsl.pdf
-Rscript $DIR/Scripts/plotnSL.R Results/CLM.nsl.out.20bins.norm Results/CLM.nsl.pdf
+Rscript Scripts/plotnSL.R Results/PEL.nsl.out.20bins.norm Results/PEL.nsl.pdf
+Rscript Scripts/plotnSL.R Results/CHB.nsl.out.20bins.norm Results/CHB.nsl.pdf
+Rscript Scripts/plotnSL.R Results/CLM.nsl.out.20bins.norm Results/CLM.nsl.pdf
 ```
 and again copy them to your local machine:
 ```

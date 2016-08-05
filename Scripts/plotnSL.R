@@ -14,7 +14,7 @@ plotGenes<-function(chr,min.pos,max.pos){
   cexlab=1.5
   adj = 0
 
-  filein="/gdc_home5/groups/bag2016/wednesday/Files/refGene.txt.gz"
+  filein="Files/refGene.txt.gz"
 
   dat<-read.table(filein,as.is=T,head=T,comment.char="")
   xx2 = dat[dat[,"chrom"]==paste("chr",chr,sep="") & dat[,"cdsStart"]<max.pos*1e6 & dat[,"cdsEnd"] >min.pos*1e6,]

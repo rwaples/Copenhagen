@@ -29,9 +29,9 @@ res=read.table(fin, stringsAsFactors=F, head=F)[21:40,]
 ii=which(res$V2>=th)
 cat("Samples retained:", length(ii), "\n")
 
-cat(res$V1[ii], sep="\n", file="Results/PEL_unadm.BAMs.txt")
+cat(res$V1[ii], sep="\n", file="Results/NAM.BAMs.txt")
 
-cat("Output files:", "Results/ALL.admix.PEL.pdf", "Results/PEL_unadm.BAMs.txt", "\n")
+cat("Output files:", "Results/ALL.admix.PEL.pdf", "Results/NAM.BAMs.txt", "\n")
 
 
 

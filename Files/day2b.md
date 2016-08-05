@@ -1,7 +1,7 @@
 
 
 We are now interested in understanding whether such levels of differentiation are expected (or not) under neutral evolution.
-We will assume we have a demographic model for the shared history of Europeans, East Asians, and Native Americans.
+We will assume we have a demographic model for the shared history of Africans, Europeans, East Asians, and Native Americans.
 We are using the commonly used software [ms](http://home.uchicago.edu/rhudson1/source/mksamples.html) to perform coalescent simulations under neutrality.
 
 We also use a model previously estimated [here](http://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1000695) for the evolution of Africans, Europeans and East Asians.
@@ -13,9 +13,8 @@ Thus, we will assume that Native Americans (their ancestors) splitted from East 
 ----------------------------------------
 
 Let us build the ms command that implements the previously mentioned model.
-First, load the module for `ms`:
 ```
-module load ms
+MS=/data/data/Software/msdir/ms
 ```
 The basic command line consists of `ms nsam nreps -t theta`.
 
@@ -28,7 +27,7 @@ Similarly, we need to define a recombination rate parameter `-r rho length` (e.g
 
 Therefore our basic command line would be:
 ```
-ms 80 1000 -t 34 -r 22 50000 | less -S
+$MS 80 1000 -t 34 -r 22 50000 | less -S
 ```
 Look at the output file. Alleles are coded as 0 (ancestor) or 1 (derived).
 Positions are relative to the length of the simulated region.
@@ -67,7 +66,7 @@ Thus, our command would be: `... -n 4 0.24 ... -ej 0.027 4 3`.
 
 Our complete command line is:
 ```
-ms 80 1000 -t 34 -r 22 50000 -I 4 20 20 20 20 -n 1 1.68 -n 2 3.73 -n 3 7.29 -n 4 0.25 -eg 0 2 116 -eg 0 3 160 -ma x 0.88 0.56 0.00 0.88 x 2.79 0.00 0.56 2.79 x 0.00 0.00 0.00 0.00 x -ej 0.027 4 3 -ej 0.029 3 2 -en 0.029 2 0.29 -en 0.30 1 1 > Results/ALL.ms
+$MS 80 1000 -t 34 -r 22 50000 -I 4 20 20 20 20 -n 1 1.68 -n 2 3.73 -n 3 7.29 -n 4 0.25 -eg 0 2 116 -eg 0 3 160 -ma x 0.88 0.56 0.00 0.88 x 2.79 0.00 0.56 2.79 x 0.00 0.00 0.00 0.00 x -ej 0.027 4 3 -ej 0.029 3 2 -en 0.029 2 0.29 -en 0.30 1 1 > Results/ALL.ms
 rm seedms
 ```
 Look at the results:
@@ -83,7 +82,7 @@ We are then going to test whether our observed value falls within or outside suc
 
 First, let us compute some summary statistics for each replication.
 ```
-Rscript $DIR/Scripts/ms2stats.R Results/ALL.ms > Results/ALL.ms.txt
+Rscript Scripts/ms2stats.R Results/ALL.ms > Results/ALL.ms.txt
 ```
 Have a look at the output file (and check how many lines we have):
 ```
@@ -95,19 +94,17 @@ Now we can plot the expected distribution of PBS under neutrality and assess whe
 Replace `OBS` with the PBS you want to test for significance and plot the neutral distribution.
 ```
 OBS=1.20
-Rscript $DIR/Scripts/plotSim.R Results/ALL.ms.txt $OBS Results/PEL.pbs.hist.pdf
+Rscript Scripts/plotSim.R Results/ALL.ms.txt $OBS Results/PEL.pbs.hist.pdf
 ```
 Inspect the plot:
 ```
-# copy to your local machine, run from your local machine
-# scp mfuma@gdcsrv1.ethz.ch:/gdc_home4/mfuma/Wednesday/Results/PEL.pbs.hist.pdf .
-# open PEL.pbs.hist.pdf
+evince Results/PEL.pbs.hist.pdf
 ```
 
 Can you draw some conclusions from this analysis?
 Are these resulting suggesting that the observed values of genetic differentiation are expected or not under neutral evolution?
 
-Next we are going to investigate the patterns of haplotype diversity around the FADS region from targeted high-depth resequencing.
+Next we are going to investigate the patterns of haplotype diversity around the EDAR region from high-depth sequencing data.
 
 ------------------------
 

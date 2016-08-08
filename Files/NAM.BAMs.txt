@@ -18,4 +18,3 @@ data/HG02265/alignment/HG02265.mapped.ILLUMINA.bwa.PEL.low_coverage.20121211.bam
 data/HG02147/alignment/HG02147.mapped.ILLUMINA.bwa.PEL.low_coverage.20120522.bam
 data/HG01954/alignment/HG01954.mapped.ILLUMINA.bwa.PEL.low_coverage.20120522.bam
 data/HG02278/alignment/HG02278.mapped.ILLUMINA.bwa.PEL.low_coverage.20130415.bam
-

@@ -50,14 +50,14 @@ goal day2: compute PBS, run sims for testing, selscan for iHs?
 
 -----------------------------
 
+------------------
+
 #### Preparation
 
+We will use 80 BAM files of human samples (of African, European, East Asians, and Native American descent), a reference genome, and putative ancestral sequence.
+The human data represents a small genomic region (3M bp on chromosome 2) extracted from the 1000 Genomes Project data set.
 
-For most of the examples, we will use the program [ANGSD](http://popgen.dk/wiki/index.php/ANGSD) (Analysis of Next Generation Sequencing Data) developed by Thorfinn Korneliussen and Anders Albrechtsen at the University of Copenhagen.
-More information about its rationale and implemented methods can be found [here](http://www.ncbi.nlm.nih.gov/pubmed/25420514).
-
-We will use 60 BAM files of human samples (of African, European, and Native American descent), a reference genome, and putative ancestral sequence.
-The human data represents a small genomic region (1MB on chromosome 11) extracted from the 1000 Genomes Project data set.
+To make things more interesting, we have downsampled our data to an average mean depth of *2X*.
 
 Please set the path for all programs and data we will be using.
 As an example these are my paths.
@@ -68,14 +68,16 @@ ANGSD=/data/data/Software/angsd
 NGSDIST=$NGSTOOLS/ngsDist
 NGSADMIX=/data/data/Software/NGSadmix/NGSadmix
 FASTME=/data/data/Software/fastme-2.1.4/src/fastme
+MS=/data/data/Software/msdir/ms
+SS=/data/data/Software/selscan/bin/linux
 ```
 However, these paths have been sym-linked to your /usr/bin so they can be called by simply typing their name, e.g. `angsd`.
 
-Then link all the Data and sequences.
+You also need to provide the location of data and sequences:
 ```
 DATA=/data/data/tmp/Copenhagen/Data
 REF=$DATA/ref.fa.gz
-ANC=$ANC/anc.fa.gz
+ANC=$DATA/anc.fa.gz
 ```
 
 

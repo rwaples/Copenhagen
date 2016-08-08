@@ -13,7 +13,11 @@ vcf=read.table(fin, sep="\t", stringsAsFact=F)
 nind=ncol(vcf)-9
 nsites=nrow(vcf)
 vcf=vcf[,c(1:5,10:ncol(vcf))]
-if (fout!=NULL) write.table(vcf[, 1:5], sep="\t", quote=F, row.names=F, col.names=F, file=fout)
+
+if (!is.null(fout)) {
+	dim(vcf)
+	write.table(vcf[,1:5], sep="\t", quote=F, row.names=F, col.names=F, file=fout)
+}
 
 ## creata fasta
 fas0=fas1=c()

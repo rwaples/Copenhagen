@@ -15,7 +15,7 @@ plotGenes<-function(chr,min.pos,max.pos){
   cexlab=1.5
   adj = 0
 
-  filein="/gdc_home5/groups/bag2016/wednesday/Files/refGene.txt.gz"
+  filein="Files/refGene.txt.gz"
 
   dat<-read.table(filein,as.is=T,head=T,comment.char="")
   xx2 = dat[dat[,"chrom"]==paste("chr",chr,sep="") & dat[,"cdsStart"]<max.pos*1e6 & dat[,"cdsEnd"] >min.pos*1e6,]
@@ -76,11 +76,11 @@ nsl <- read.table(fin, header=TRUE)
 
 cat("Maximum XP_EHH value:", max(nsl[,8], na.rm=T), "\n")
 
-plot(nsl[,1]/1e6, nsl[,8], type ="l", col="orange",ylab = "XP-EHH", xlab="Chromosome", main="XP-EHH scan" , lwd=1, xaxt="n",cex.main = 0.9, cex.axis = 0.6, cex.lab = 0.68 ) #orange
+plot(nsl[,1]/1e6, nsl[,8], type ="l", col="orange",ylab = "XP-EHH", xlab="Chromosome", main="XP-EHH scan" , lwd=1, xaxt="n",cex.main = 0.9, cex.axis = 0.6, cex.lab = 0.68, xlim=c(109.4,109.8) ) #orange
 
 #Add a second panel showing the genes in that region
 par(mar=c(5, 4, 0.5, 2) + 0.1)
-plotGenes(11,min(nsl[,1]/1e6),max(nsl[,1]/1e6))
+plotGenes(2,109.4,109.8)
 
 
 

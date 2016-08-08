@@ -81,14 +81,18 @@ par(mar=c(0, 4, 4, 2) + 0.1)
 
 pbs <- read.table(fin, header=TRUE)
 
+pbs$PBS1[which(pbs$PBS1<0)]=0
+pbs$PBS2[which(pbs$PBS2<0)]=0
+pbs$PBS0[which(pbs$PBS0<0)]=0
+
 cat("Maximum PBS value:", max(pbs$PBS2, na.rm=T), "\n")
 
-plot(pbs$midPos/1e6, pbs$PBS2, type ="l", col="orange",ylab = "PBS", xlab=paste("Chromosome",pbs$chr[1]), main="PBS scan" , lwd=1, xaxt="n",cex.main = 0.9, cex.axis = 0.6, cex.lab = 0.68 ) #orange
+plot(pbs$midPos/1e6, pbs$PBS2, type ="l", col="orange",ylab = "PBS", xlab=paste("Chromosome",pbs$chr[1]), main="PBS scan" , lwd=1, xaxt="n",cex.main = 0.9, cex.axis = 0.6, cex.lab = 0.68, ylim=c(0, max(pbs$PBS2, na.rm=T)), xlim=c(109.4, 109.8) ) #orange
 
-lines(pbs$midPos/1e6, pbs$PBS1, col="blue", lwd=1)
-cat("Maximum PBS value (for TSI):", max(pbs$PBS1, na.rm=T), "\n")
+lines(pbs$midPos/1e6, pbs$PBS0, col="blue", lwd=1)
+#cat("Maximum PBS value (for LWK):", max(pbs$PBS0, na.rm=T), "\n")
 
-legend("topright", legen=c("PEL","TSI"), col=c("orange", "blue"), lty=1)
+legend("topright", legen=c("CHB","LWK"), col=c("orange", "blue"), lty=1)
 
     #title(ylab="Selection Statistics", line=2.2, cex.lab=0.69)
     #abline(h=1,lty=2,col="grey",lwd=1)
@@ -96,7 +100,7 @@ legend("topright", legen=c("PEL","TSI"), col=c("orange", "blue"), lty=1)
 
 #Add a second panel showing the genes in that region
 par(mar=c(5, 4, 0.5, 2) + 0.1)
-plotGenes(pbs$chr[1],min(pbs$midPos)/1e6,max(pbs$midPos)/1e6)
+plotGenes(pbs$chr[1],109.4,109.8)
 
 
 

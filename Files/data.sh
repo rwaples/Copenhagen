@@ -12,9 +12,9 @@ VCFLIB=/data/data/Software/vcflib/bin
 echo Is this your path to VCFlib? $VCFLIB
 
 # chrom start end
-CHROM=2
-START=109000000
-END=110000000
+CHROM=11
+START=61000000
+END=62000000
 
 mkdir Data
 mkdir Results

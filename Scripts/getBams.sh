@@ -23,10 +23,11 @@ do
 	head -n $NS tmp > $OUTPUT 
 	rm tmp
 done
+cp Files/NAM.BAMs.txt .
 
 echo Downloading BAM files...
 # download and index bams
-for POP in LWK TSI CHB PEL;
+for POP in LWK TSI CHB PEL NAM;
 do
 	mkdir Data/$POP.BAMs
 	echo $POP

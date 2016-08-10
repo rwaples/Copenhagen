@@ -13,8 +13,15 @@ rm(args)
 x=read.dna(fin, format="fasta")
 
 h=haplotype(x)
-h=subset(h,2)
+h=subset(h,1)
 h <- sort(h, what = "labels")
+
+countHap <- function(hap = h, dna = x){
+	    with(
+		         stack(setNames(attr(hap, "index"), rownames(hap))),
+			         table(hap = ind, pop = attr(dna, "dimnames")[[1]][values])
+			     )
+}
 
 ind.hap<-with(
 	              stack(setNames(attr(h, "index"), rownames(h))),
@@ -37,7 +44,7 @@ net=haploNet(h)
 
 pdf(file=fout)
 
-plot(net, size=attr(net, "freq"), scale.ratio = 1, cex = 0.8, fast=TRUE, pie=ind.hap, labels=T, legend=F, show.mutation=0, th=0, lwd = (1 + round(.010*(net[,'step']))))
+plot(net, size=attr(net, "freq")*2, scale.ratio = 0.5, cex = 0.8, fast=TRUE, pie=ind.hap, labels=F, legend=F, show.mutation=0, th=0, lwd = (1 + round(.010*(net[,'step']))))
 legend("topleft", colnames(ind.hap), col=rainbow(ncol(ind.hap)), pch=20)
 
 dev.off()

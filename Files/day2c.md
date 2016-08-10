@@ -174,7 +174,7 @@ First, we convert our VCF files into FASTA files.
 > Results/EDAR.fa
 Rscript Scripts/vcf2fasta.R Data/NAM.edar.vcf NAM Results/NAM.edar.snp >> Results/EDAR.fa
 Rscript Scripts/vcf2fasta.R Data/TSI.edar.vcf TSI NULL >> Results/EDAR.fa
-Rscript Scripts/vcf2fasta.R Data/CHB.edar.vcf CHB NULL >> Results/EDAR.fa
+#Rscript Scripts/vcf2fasta.R Data/CHB.edar.vcf CHB NULL >> Results/EDAR.fa
 ```
 Have a look at the resulting file:
 ```
@@ -190,10 +190,10 @@ evince Results/EDAR.pdf
 ```
 Each unique haplotype is represented as a circle whose size is proportional to its frequency.
 
-The variants on the branch separating TSI and CHB/NAM common haplotypes are candidates to be causal.
+Our variant of interest is rs3827760:
 ```
-less -S Results/EDAR.diff
-# grep -P "V \t XXXVI" Results/FADS.diff | head -n 2 | tail -n 1 > Results/FADS.cause.diff
+grep rs3827760 Results/NAM.edar.snp 
+# 2	109513601	rs3827760	A	G
 ```
 
 Another useful tool for visualising haplotypes is [PopArt](http://popart.otago.ac.nz/).

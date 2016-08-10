@@ -331,10 +331,10 @@ Look at the results:
 ```
 less -S Results/CHB.thetas.pestPG
 ```
-and plot the sliding windows scan for nuclotide diversity:
+and plot the sliding windows scan for nucleotide diversity:
 ```
 Rscript $DIR/Scripts/plotSS.R
-evince Results/`CHB.ss.pdf
+evince Results/CHB.ss.pdf
 ```
 
 ------------------------

@@ -50,7 +50,7 @@ ANGSD=/home/ricco/github/angsd
 NGSTOOLS=/home/ricco/github/ngsTools/
 NGSDIST=$NGSTOOLS/ngsDist
 MS=/home/ricco/bin/msdir/ms
-SS=/home/ricco/github/selscan/bin/linux/selscan
+SS=/home/ricco/github/selscan/bin/linux
 # optional
 NGSADMIX=/home/ricco/github/angsd/misc/NGSadmix
 FASTME=/home/ricco/bin/fastme-2.1.5/binaries/fastme-2.1.5-linux64

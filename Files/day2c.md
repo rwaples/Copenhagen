@@ -34,20 +34,20 @@ However we need to extract only the sites that correspond in our VCF file.
 We also need to interpolate over the sites that are not recorded in our genetic map.
 A simple R script to do that is here:
 ```
-Rscript $DIR/Scripts/getGenMap.R Data/genetic_map_chrom2.map Data/NAM.chr2.vcf > Results/genetic.map
+Rscript $DIR/Scripts/getGenMap.R $DATA/genetic_map_chrom2.map $DATA/NAM.chr2.vcf > Results/genetic.map
 ```
 
 Now we can run XP-EHH giving the resulting file as input.
 This may take some time...choose one population...
 ```
 # NAM
-$SS/selscan --xpehh --vcf Data/NAM.chr2.vcf --vcf-ref Data/TSI.chr2.vcf --map Results/genetic.map --out Results/NAM --threads 2
+$SS/selscan --xpehh --vcf $DATA/NAM.chr2.vcf --vcf-ref $DATA/TSI.chr2.vcf --map Results/genetic.map --out Results/NAM --threads 2
 # CHB
-$SS/selscan --xpehh --vcf Data/CHB.chr2.vcf --vcf-ref Data/TSI.chr2.vcf --map Results/genetic.map --out Results/CHB --threads 2
+$SS/selscan --xpehh --vcf $DATA/CHB.chr2.vcf --vcf-ref $DATA/TSI.chr2.vcf --map Results/genetic.map --out Results/CHB --threads 2
 # CLM
-$SS/selscan --xpehh --vcf Data/CLM.chr2.vcf --vcf-ref Data/TSI.chr2.vcf --map Results/genetic.map --out Results/CLM --threads 2
+$SS/selscan --xpehh --vcf $DATA/CLM.chr2.vcf --vcf-ref $DATA/TSI.chr2.vcf --map Results/genetic.map --out Results/CLM --threads 2
 # LWK
-$SS/selscan --xpehh --vcf Data/LWK.chr2.vcf --vcf-ref Data/TSI.chr2.vcf --map Results/genetic.map --out Results/LWK --threads 2
+$SS/selscan --xpehh --vcf $DATA/LWK.chr2.vcf --vcf-ref $DATA/TSI.chr2.vcf --map Results/genetic.map --out Results/LWK --threads 2
 ```
 The output file has the header:
 `< locusID > < physicalPos > < geneticPos > < popA ’1 ’ freq > < ihhA > < popB ’1 ’ freq > < ihhB > < unstandardized XPEHH >`
@@ -123,7 +123,7 @@ This is set with the option `--max-extend-nsl`.
 It is also common to filter out variant with very low frequency.
 Therefore our command line might be:
 ```
-$SS/selscan --nsl --vcf Data/NAM.chr2.vcf --out Results/NAM --max-extend-nsl 200 --maf 0.02
+$SS/selscan --nsl --vcf $DATA/NAM.chr2.vcf --out Results/NAM --max-extend-nsl 200 --maf 0.02
 ```
 Have a look at the output file, knowning that the header is:
 `< locusID > < physicalPos > < ’1 ’ freq > <sl1 > <sl0 > < unstandardized nSL >`
@@ -172,9 +172,8 @@ Specifically, we want to draw a haplotype network, where all (unique) haplotypes
 First, we convert our VCF files into FASTA files.
 ```
 > Results/EDAR.fa
-Rscript Scripts/vcf2fasta.R Data/NAM.edar.vcf NAM Results/NAM.edar.snp >> Results/EDAR.fa
-Rscript Scripts/vcf2fasta.R Data/TSI.edar.vcf TSI NULL >> Results/EDAR.fa
-#Rscript Scripts/vcf2fasta.R Data/CHB.edar.vcf CHB NULL >> Results/EDAR.fa
+Rscript $DIR/Scripts/vcf2fasta.R $DATA/NAM.edar.vcf NAM Results/NAM.edar.snp >> Results/EDAR.fa
+Rscript $DIR/Scripts/vcf2fasta.R $DATA/TSI.edar.vcf TSI NULL >> Results/EDAR.fa
 ```
 Have a look at the resulting file:
 ```

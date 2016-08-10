@@ -345,7 +345,7 @@ As an illustration, let us call SNPs by computing:
 
 Try to write down this command by yourself...
 
-Here is the solution:
+Here is the solution (this may take some time):
 ```
 $ANGSD/angsd -P 4 -b $DATA/ALL.bamlist -ref $REF -out Results/ALL \
         -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \

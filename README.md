@@ -47,7 +47,7 @@ Please set the path for all programs and data we will be using.
 ```
 # mandatory
 ANGSD=/home/ricco/github/angsd
-NGSTOOLS=/home/ricco/github/ngsTools/
+NGSTOOLS=/home/ricco/github/ngsTools
 NGSDIST=$NGSTOOLS/ngsDist
 MS=/home/ricco/bin/msdir/ms
 SS=/home/ricco/github/selscan/bin/linux

@@ -28,7 +28,7 @@ The basic usage of selscan to compute nSL from VCF file is:
 This statistic can be computed using selscan, provided that we have a genetic map file.
 A genetic map for chromosome 2 (based on 1000 Genomes data and PEL samples) is provided here:
 ```
-less -S Data/genetic_map_chrom2.map
+less -S $DATA/genetic_map_chrom2.map
 ```
 However we need to extract only the sites that correspond in our VCF file.
 We also need to interpolate over the sites that are not recorded in our genetic map.

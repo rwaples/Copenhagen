@@ -1,5 +1,4 @@
 
-
 We are now interested in understanding whether such levels of differentiation are expected (or not) under neutral evolution.
 We will assume we have a demographic model for the shared history of Africans, Europeans, East Asians, and Native Americans.
 We are using the commonly used software [ms](http://home.uchicago.edu/rhudson1/source/mksamples.html) to perform coalescent simulations under neutrality.
@@ -13,9 +12,6 @@ Thus, we will assume that Native Americans (their ancestors) splitted from East 
 ----------------------------------------
 
 Let us build the ms command that implements the previously mentioned model.
-```
-MS=/data/data/Software/msdir/ms
-```
 The basic command line consists of `ms nsam nreps -t theta`.
 
 The first thing we need to define is how many samples we have (nsam, 80 chromosomes) and how many repetitions we want (nreps, for instance 1,000).

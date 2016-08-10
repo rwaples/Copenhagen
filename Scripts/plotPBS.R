@@ -85,7 +85,7 @@ pbs$PBS1[which(pbs$PBS1<0)]=0
 pbs$PBS2[which(pbs$PBS2<0)]=0
 pbs$PBS0[which(pbs$PBS0<0)]=0
 
-cat("Maximum PBS value:", max(pbs$PBS2, na.rm=T), "\n")
+cat("Maximum PBS value:", max(pbs$PBS2[which(pbs$midPos>109.4e6 & pbs$midPos<109.8e6)], na.rm=T), "\n")
 
 plot(pbs$midPos/1e6, pbs$PBS2, type ="l", col="orange",ylab = "PBS", xlab=paste("Chromosome",pbs$chr[1]), main="PBS scan" , lwd=1, xaxt="n",cex.main = 0.9, cex.axis = 0.6, cex.lab = 0.68, ylim=c(0, max(pbs$PBS2, na.rm=T)), xlim=c(109.4, 109.8) ) #orange
 

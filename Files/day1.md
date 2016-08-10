@@ -173,7 +173,7 @@ less -S Results/ALL.qc.depthGlobal
 
 It is convenient to compute the percentiles of these distributions (and visualize them) in order to make an informative decision on the threshold values we will use for our filtering.
 ```
-Rscript Scripts/plotQC.R Results/ALL.qc 2> /dev/null
+Rscript $DIR/Scripts/plotQC.R Results/ALL.qc 2> /dev/null
 ```
 Have a look at the output files:
 ```
@@ -683,7 +683,7 @@ Please note that the following code is provided as a pure example.
 You may need to modify the script for using it on different data sets.
 In my case these are NAM CHB TSI LWK:
 ```
-Rscript Scripts/getUnadmixed.R 0.90 PEL LWK TSI CHB
+Rscript $DIR/Scripts/getUnadmixed.R 0.90 PEL LWK TSI CHB
 ```
 Inspect the results.
 ```

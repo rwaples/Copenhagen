@@ -75,6 +75,7 @@ However, these paths have been sym-linked to your /usr/bin so they can be called
 
 You also need to provide the location of data and sequences:
 ```
+DIR=/data/Works/Workshops/Copenhagen
 DATA=/data/data/tmp/Copenhagen/Data
 REF=$DATA/ref.fa.gz
 ANC=$DATA/anc.fa.gz

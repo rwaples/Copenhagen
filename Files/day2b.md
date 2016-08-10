@@ -82,7 +82,7 @@ We are then going to test whether our observed value falls within or outside suc
 
 First, let us compute some summary statistics for each replication.
 ```
-Rscript Scripts/ms2stats.R Results/ALL.ms > Results/ALL.ms.txt
+Rscript $DIR/Scripts/ms2stats.R Results/ALL.ms > Results/ALL.ms.txt
 ```
 Have a look at the output file (and check how many lines we have):
 ```
@@ -93,16 +93,13 @@ less -S Results/ALL.ms.txt
 Now we can plot the expected distribution of PBS under neutrality and assess whether our observed value (for instance the top PBS value) is higher than a specific percentile (e.g. 95th or 99th).
 Replace `OBS` with the PBS you want to test for significance and plot the neutral distribution.
 ```
-OBS=1.20
-Rscript Scripts/plotSim.R Results/ALL.ms.txt $OBS Results/PEL.pbs.hist.pdf
+OBS=0.62
+Rscript $DIR/Scripts/plotSim.R Results/ALL.ms.txt $OBS Results/NAM.pbs.hist.pdf
 ```
 Inspect the plot:
 ```
-evince Results/PEL.pbs.hist.pdf
+evince Results/NAM.pbs.hist.pdf
 ```
-
-Can you draw some conclusions from this analysis?
-Are these resulting suggesting that the observed values of genetic differentiation are expected or not under neutral evolution?
 
 Next we are going to investigate the patterns of haplotype diversity around the EDAR region from high-depth sequencing data.
 

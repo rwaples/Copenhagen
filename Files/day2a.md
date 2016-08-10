@@ -137,7 +137,7 @@ Nevertheless, these SFS should be a reasonable prior to be used for estimation o
 
 Let us plot the SFS for each pop using this simple R script.
 ```
-Rscript Scripts/plotSFS.R Results/LWK.sfs Results/TSI.sfs Results/CHB.sfs Results/NAM.sfs
+Rscript $DIR/Scripts/plotSFS.R Results/LWK.sfs Results/TSI.sfs Results/CHB.sfs Results/NAM.sfs
 evince Results/LWK_TSI_CHB_NAM.pdf
 ```
 
@@ -171,12 +171,15 @@ However, here we are interested in estimating the 2D-SFS as prior information fo
 
 An important issue when doing this is to be sure that we are comparing the exactly same corresponding sites between populations.
 ANGSD does that automatically and considers only a set of overlapping sites.
+
+We are performing PBS assuming both CHB and NAM being the targeted population.
 The 2D-SFS between all populations and NAM are computed with:
 ```
+POP2=NAM
 for POP in LWK TSI CHB
 do
         echo $POP
-        $ANGSD/misc/realSFS -P 4 Results/$POP.saf.idx Results/NAM.saf.idx 2> /dev/null > Results/$POP.NAM.sfs
+        $ANGSD/misc/realSFS -P 4 Results/$POP.saf.idx Results/$POP2.saf.idx 2> /dev/null > Results/$POP.$POP2.sfs
 done
 # we also need the comparison between LWK and TSI as we will see later 
 $ANGSD/misc/realSFS -P 4 Results/LWK.saf.idx Results/TSI.saf.idx 2> /dev/null > Results/LWK.TSI.sfs
@@ -188,7 +191,7 @@ less -S Results/LWK.NAM.sfs
 ```
 You can plot it, but you need to define how many samples you have per population.
 ```
-Rscript Scripts/plot2DSFS.R Results/LWK.NAM.sfs 20 20
+Rscript $DIR/Scripts/plot2DSFS.R Results/LWK.NAM.sfs 20 20
 evince Results/LWK.NAM.sfs.pdf
 ```
 
@@ -217,6 +220,7 @@ done
 $ANGSD/misc/realSFS -P 4 Results/LWK.saf.idx Results/TSI.saf.idx 2> /dev/null > Results/LWK.TSI.sfs
 ```
 
+We also assume CHB being the target population, as a separate analysis.
 ```
 POP2=CHB
 for POP in LWK TSI
@@ -224,30 +228,27 @@ do
         echo $POP
         $ANGSD/misc/realSFS -P 4 Results/$POP.saf.idx Results/$POP2.saf.idx 2> /dev/null > Results/$POP.$POP2.sfs
 done
-# we also need the comparison between LWK and TSI
-$ANGSD/misc/realSFS -P 4 Results/LWK.saf.idx Results/TSI.saf.idx 2> /dev/null > Results/LWK.TSI.sfs
 ```
 
 The 2D-SFS will be used as prior information for the joint allele frequency probabilities at each site.
-From these probabilities we will calculate the population branch statistic (PBS) using the NAM as target population and LWK and TSI as reference populations.
-Our goal is to detect selection in PEL in terms of allele frequency differentiation.
+From these probabilities we will calculate the population branch statistic (PBS) using the NAM (and CHB) as target population and LWK and TSI as reference populations.
+Our goal is to detect selection in NAM/CHB in terms of allele frequency differentiation.
 
 Specifically, we are computing a slinding windows scan, with windows of 50kbp and a step of 10kbp.
 This can be achieved using the following commands.
 
 1) This command will compute per-site FST indexes (please note the order of files):
 ```
+# NAM
 $ANGSD/misc/realSFS fst index Results/LWK.saf.idx Results/TSI.saf.idx Results/NAM.saf.idx -sfs Results/LWK.TSI.sfs -sfs Results/LWK.NAM.sfs -sfs Results/TSI.NAM.sfs -fstout Results/NAM.pbs &> /dev/null
-```
-```
+# CHB
 $ANGSD/misc/realSFS fst index Results/LWK.saf.idx Results/TSI.saf.idx Results/CHB.saf.idx -sfs Results/LWK.TSI.sfs -sfs Results/LWK.CHB.sfs -sfs Results/TSI.CHB.sfs -fstout Results/CHB.pbs &> /dev/null
-
 ```
 and you can have a look at their values:
 ```
+# NAM
 $ANGSD/misc/realSFS fst print Results/NAM.pbs.fst.idx | less -S
-```
-```
+# CHB
 $ANGSD/misc/realSFS fst print Results/CHB.pbs.fst.idx | less -S
 ```
 where columns are: chromosome, position, (a), (a+b) values for the three FST comparisons, where FST is defined as a/(a+b).
@@ -255,106 +256,47 @@ Note that FST on multiple SNPs is calculated as sum(a)/sum(a+b).
 
 2) The next command will perform a sliding-window analysis:
 ```
-$ANGSD/misc/realSFS fst stats2 Results/NAM.pbs.fst.idx -win 50000 -step 10000 > Results/NAM.pbs.txt
-```
-```
-$ANGSD/misc/realSFS fst stats2 Results/CHB.pbs.fst.idx -win 50000 -step 10000 > Results/CHB.pbs.txt
+# NAM
+$ANGSD/misc/realSFS fst stats2 Results/NAM.pbs.fst.idx -win 50000 -step 10000 > Results/NAM.pbs.txt 2> /dev/null
+# CHB
+$ANGSD/misc/realSFS fst stats2 Results/CHB.pbs.fst.idx -win 50000 -step 10000 > Results/CHB.pbs.txt 2> /dev/null
 ```
 
 Have a look at the output file:
 ```
+# NAM
 less -S Results/NAM.pbs.txt
-```
-```
+# CHB
 less -S Results/CHB.pbs.txt
 ```
 The header is:
 ```
 region  chr     midPos  Nsites  Fst01   Fst02   Fst12   PBS0    PBS1    PBS2
 ```
-Where are interested in the column `PB2` which gives the PBS values assuming PEL (coded here as 2) being the target population.
+Where are interested in the column `PB2` which gives the PBS values assuming our population (coded here as 2) being the target population.
 Note that negative PBS and FST values are equivalent to 0.
 
 We are also provided with the individual FST values.
 You can see that high values of PBS2 are indeed associated with high values of both Fst02 and Fst12 but not Fst01.
-
 We can plot the results along with the gene annotation.
 ```
-Rscript Scripts/plotPBS.R Results/NAM.pbs.txt Results/NAM.pbs.pdf
-```
-```
-Rscript Scripts/plotPBS.R Results/CHB.pbs.txt Results/CHB.pbs.pdf
+# NAM
+Rscript $DIR/Scripts/plotPBS.R Results/NAM.pbs.txt Results/NAM.pbs.pdf
+# CHB
+Rscript $DIR/Scripts/plotPBS.R Results/CHB.pbs.txt Results/CHB.pbs.pdf
 ```
 
-It will also print out the maximum PBS value observed (e.g. `Maximum PBS value: 1.151302`), as this value will be used in the next part.
-This script will also plot the PBS variation assuming TSI as the target population, as a comparison.
+It will also print out the maximum PBS value observed as this value will be used in the next part.
+This script will also plot the PBS variation assuming LWK as the target population, as a comparison.
 ```
-evince Results/PEL.pbs.pdf
+# NAM
+evince Results/NAM.pbs.pdf
+# CHB
+evince Results/CHB.pbs.pdf
 ```
 Comment on the results.
-
-There is a local increase in PBS (genetic differentiation in PEL) corresponding to EDAR gene!
-Such pattern is not observed assuming TSI being the selected population.
-Therefore it looks like selection might target EDAR gene in Native Americans as well.
 
 -------------------------
-
-As an illustration, now we are going to check what we would have got if we had used 'default' values under a standard genotype calling approach.
-For the sake of fairness, we are doing a light filtering based on mapping and base quality as well.
-Also we assume that the default cutoff for SNP calling is set on a minimum allele frequency of '1%'.
-Allele frequencies are simply calculated as proportions of alleles at each site.
-Finally, the two alleles are simply defined by allele counts.
-
-Call genotypes under these requirements:
-```
-$ANGSD/angsd -P 4 -b $DATA/ALL.bamlist -ref $REF -out Results/DUMB \
-        -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
-        -minMapQ 20 -minQ 20 -minInd 40 -setMinDepth 50 -setMaxDepth 250 -doCounts 1 \
-        -GL 1 -doMajorMinor 2 -doMaf 8 -skipTriallelic 1 \
-        -doGeno 2 -doPost 2 -minMaf 0.01 &>/dev/null
-```
-and open the results:
-```
-less -S Results/DUMB.geno.gz
-```
-
-As you can see there are many '-1' values which represent unassigned genotypes due to missing data.
-We would not be able to perform any analyses with some many missing sites, unless doing some imputation.
-We can overcome this by assuming HWE and use an informative prior on genotypes.
-This is achieved by using `-doPost 1` option.
-Allele frequencies are again simply calculated as proportions of alleles at each site.
-
-Call genotypes using a HWE-based prior:
-```
-$ANGSD/angsd -P 4 -b $DATA/ALL.bamlist -ref $REF -out Results/DUMB \
-        -uniqueOnly 1 -remove_bads 1 -only_proper_pairs 1 -trim 0 -C 50 -baq 1 \
-        -minMapQ 20 -minQ 20 -minInd 40 -setMinDepth 50 -setMaxDepth 250 -doCounts 1 \
-        -GL 1 -doMajorMinor 2 -doMaf 8 -skipTriallelic 1 \
-        -doGeno 2 -doPost 1 -minMaf 0.01 &>/dev/null
-```
-and open the results:
-```
-less -S Results/DUMB.geno.gz
-```
-
-We now calculate PBS value from called genotypes, again in sliding windows in 50kbp with a setp of 10kbp.
-You can use this R script to plot the results as well:
-```
-Rscript Scripts/calcPBS.R Results/DUMB.geno.gz Results/DUMB.pbs.pdf
-evince Results/DUMB.pbs.pdf
-```
-
-Comment on the results.
-
-...thinking...
-
-As you can see, there is a local increase around EDAR but the signal is way reduced compared to the previous analysis.
-Therefore by using a naive approach based on genotype calling we would completely miss the putative selection signal.
-For low-depth data, a probabilistic approach that estimates summary statistics taking data uncertainty into account is highly recommeded.
-
-The next step would be to assess whether such pattern of allelic differentiation is expected given a demographic model.
-
--------------
 
 **OPTIONAL**
 
@@ -391,16 +333,9 @@ less -S Results/CHB.thetas.pestPG
 ```
 and plot the sliding windows scan for nuclotide diversity:
 ```
-Rscript Scripts/plotSS.R
-evince PEL.ss.pdf
+Rscript $DIR/Scripts/plotSS.R
+evince Results/`CHB.ss.pdf
 ```
-
-Comment on the results.
-
-...thinking...
-
-There is a large drop in nucletide diversity in CHB.
-Next, we will investigate the patterns of haplotype diversity.
 
 ------------------------
 

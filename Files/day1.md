@@ -77,8 +77,8 @@ These filters are based on:
 
 Have a look at our list of BAM files:
 ```
-cat ALL.bamlist
-wc -l ALL.bamlist
+cat $DATA/ALL.bamlist
+wc -l $DATA/ALL.bamlist
 ```
 
 If the input file is in BAM format, the possible options are:

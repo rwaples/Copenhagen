@@ -1,4 +1,34 @@
 
+#### Preparation
+
+We will use 80 BAM files of human samples (of African, European, East Asians, and Native American descent), a reference genome, and putative ancestral sequence.
+The human data represents a small genomic region (3M bp on chromosome 2) extracted from the 1000 Genomes Project data set.
+
+To make things more interesting, we have downsampled our data to an average mean depth of *2X*.
+
+Please set the path for all programs and data we will be using.
+As an example these are my paths.
+```
+SAMTOOLS=/data/data/Software/samtools-1.3
+NGSTOOLS=/data/Software/ngsTools
+ANGSD=/data/data/Software/angsd
+NGSDIST=$NGSTOOLS/ngsDist
+NGSADMIX=/data/data/Software/NGSadmix/NGSadmix
+FASTME=/data/data/Software/fastme-2.1.4/src/fastme
+MS=/data/data/Software/msdir/ms
+SS=/data/data/Software/selscan/bin/linux
+```
+However, these paths have been sym-linked to your /usr/bin so they can be called by simply typing their name, e.g. `angsd`.
+
+You also need to provide the location of data and sequences:
+```
+DIR=/data/Works/Workshops/Copenhagen
+DATA=/data/data/tmp/Copenhagen/Data
+REF=$DATA/ref.fa.gz
+ANC=$DATA/anc.fa.gz
+```
+
+
 Rationale and preparation
 
 #### Rationale

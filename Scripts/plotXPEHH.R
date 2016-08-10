@@ -72,15 +72,32 @@ pdf(file=fout)
 par(mfrow=c(2,1))
 par(mar=c(0, 4, 4, 2) + 0.1)
 
-nsl <- read.table(fin, header=TRUE)
+nsl <- read.table(fin, header=TRUE, stringsAsFact=F)
 
-cat("Maximum XP_EHH value:", max(nsl[,8], na.rm=T), "\n")
+cat("Maximum unstd XP_EHH value:", max(nsl[,7], na.rm=T), "\n")
 
-plot(nsl[,1]/1e6, nsl[,8], type ="l", col="orange",ylab = "XP-EHH", xlab="Chromosome", main="XP-EHH scan" , lwd=1, xaxt="n",cex.main = 0.9, cex.axis = 0.6, cex.lab = 0.68, xlim=c(109.4,109.8) ) #orange
+len=5e4
+st=1e4
+
+starts=seq(109e6,110e6-len,st)
+ends=starts+len
+
+maxs=pos=rep(NA, length(starts))
+
+for (i in 1:(length(starts))) {
+
+	ind=which(nsl[,1]>=starts[i] & nsl[,1]<ends[i])
+	if (length(ind)>2) maxs[i]=max(nsl[ind,7], na.rm=T)
+	pos[i]=starts[i]+(len/2)
+
+}
+
+
+plot(x=pos/1e6, y=maxs, type ="l", col="orange",ylab = "XP-EHH", xlab="Chromosome", main="XP-EHH scan" , lwd=1, xaxt="n",cex.main = 0.9, cex.axis = 0.6, cex.lab = 0.68, xlim=c(109,110), ylim=c(0,2) ) #orange
 
 #Add a second panel showing the genes in that region
 par(mar=c(5, 4, 0.5, 2) + 0.1)
-plotGenes(2,109.4,109.8)
+plotGenes(2,109,110)
 
 
 

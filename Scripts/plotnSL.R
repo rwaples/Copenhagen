@@ -70,16 +70,33 @@ pdf(file=fout)
 par(mfrow=c(2,1))
 par(mar=c(0, 4, 4, 2) + 0.1)
 
-nsl <- read.table(fin, header=FALSE)
+nsl <- read.table(fin, header=FALSE, stringsAsFact=F)
 
 cat("Maximum nsL value:", max(nsl[,7], na.rm=T), "\n")
 cat("Minimum nsL value:", min(nsl[,7], na.rm=T), "\n")
 
-plot(nsl[,2]/1e6, nsl[,7], type ="l", col="orange",ylab = "nSL", xlab="Chromosome", main="nSL scan" , lwd=1, xaxt="n",cex.main = 0.9, cex.axis = 0.6, cex.lab = 0.68 ) #orange
+len=5e4
+st=1e4
+
+starts=seq(109e6,110e6-len,st)
+ends=starts+len
+
+vals=pos=rep(NA, length(starts))
+
+for (i in 1:(length(starts))) {
+
+	ind=which(nsl[,2]>=starts[i] & nsl[,2]<ends[i])
+	vals[i]=length(which(abs(nsl[ind,7])>2))
+	pos[i]=starts[i]+(len/2)
+
+}
+
+
+plot(pos, vals, type ="l", col="orange",ylab = "#|nSL|>2", xlab="Chromosome", main="nSL scan" , lwd=1, xaxt="n",cex.main = 0.9, cex.axis = 0.6, cex.lab = 0.68 ) #orange
 
 #Add a second panel showing the genes in that region
 par(mar=c(5, 4, 0.5, 2) + 0.1)
-plotGenes(11,min(nsl[,2]/1e6),max(nsl[,2]/1e6))
+plotGenes(2,109,110)
 
 
 

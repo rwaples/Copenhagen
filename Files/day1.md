@@ -10,7 +10,7 @@ More information about its rationale and implemented methods can be found [here]
 
 According to its website *ANGSD is a software for analyzing next generation sequencing data. The software can handle a number of different input types from mapped reads to imputed genotype probabilities. Most methods take genotype uncertainty into account instead of basing the analysis on called genotypes. This is especially useful for low and medium depth data. The software is written in C++ and has been used on large sample sizes. This program is not for manipulating BAM/CRAM files, but solely a tool to perform various kinds of analysis. We recommend the excellent program SAMtools for outputting and modifying bamfiles.*
 
-Please make sure to follow the instructions [here](../Files/preparation.md) before running these examples.
+Please make sure to follow the instructions on the main page before running these examples.
 
 --------------------------------------------------------------------------
 
@@ -428,8 +428,6 @@ Which frequencies are more difficult to estimate and therefore affect SNP callin
 
 We are finally ready to gather some biological insights from the data.
 Recalling our research aim, our first goal is to calculate allele frequencies of our target variant in EDAR gene for different human populations.
-
-http://www.nature.com/ncomms/2016/160519/ncomms11616/full/ncomms11616.html
 
 Our SNP of interest is located in EDAR gene.
 According to our reference [paper](http://www.nature.com/ncomms/2016/160519/ncomms11616/full/ncomms11616.html), *The derived G allele at the index SNP in this region (rs3827760) encodes a functional substitution in the intracellular death domain of EDAR (370A) and is associated with reduced chin protrusion*.

@@ -25,7 +25,8 @@ Uncomment it before running it.
 ## Data
 
 As an illustration, we will use 80 BAM files of human samples (of African, European, East Asian, and Native American descent), a reference genome, and putative ancestral sequence.
-To make things more interesting, we have downsampled our data to an average mean depth of *2X*.
+*To make things more interesting, we have downsampled our data to an average mean depth of 2X!*.
+
 We will also use VCF files for 120 individuals from the same populations.
 The human data represents a small genomic region (1MB on chromosome 2) extracted from the 1000 Genomes Project data set.
 More information on this project can be found [here](http://www.1000genomes.org/), including their last publication available [here](http://www.nature.com/nature/journal/v526/n7571/full/nature15393.html).
@@ -74,15 +75,16 @@ Detecting signatures of natural selection in the genome has the twofold meaning 
 In case of humans, biological pathways enriched with selection signatures include pigmentation, immune-system regulation and metabolic processes.
 The latter may be related to human adaptation to different diet regimes, depending on local food availability (e.g. the case of lactase persistence in dairy-practicing populations).
 
-EDAR... involved in...
-EDAR is classic example of positive selection in East Asians with phenotypic effects.
-Recently, GWAS study found EDAR associated to... in Native Americans, with the same causal snp.
+The human Ectodysplasin A receptor gene, or EDAR, is part of the EDA signalling pathway which specifies prenatally the location, size and shape of ectodermal appendages (such as hair follicles, teeth and glands).
+EDAR is a textbook example of positive selection in East Asians (Sabeti et al. 2007 Nature) with tested phenotypic effects (using transgenic mice).
+
+Recently, a genome-wide association study found the same functional variant in EDAR associated to several human facial traits (era shape, chin protusion, ...) in Native American populations (Adhikari et al. Nat Commun 2016).
 
 *HYPOTHESIS*
 
-Is positive selection on EDAR (SNP) targeting Native American populations too?
-
-If so, is selection acting on the same variant as in East Asians?
+- Is the functional allele in East Asian at high frequency in other human populations (e.g. Native Americans)?
+- Can we identify signatures of natural selection on EDAR in Native Americans?
+- Is selection targeting the same functional variant?
 
 *CHALLENGES*
 - Admixed population
@@ -93,16 +95,18 @@ If so, is selection acting on the same variant as in East Asians?
 
 Goal day 1:
 
-- Retrieve genomic data for 1000 Genomes Project for Africans, Europeans, East Asians and Americans (low-depth)
-- Investigate population structure of American samples relating to Europeans and Africans [optional]
-- Select individuals with high Native American ancestry [optional]
+- Estimate allele frequencies for tested variant for African, European, East Asian and Native American samples from low-depth sequencing data
+Optional:
+- Investigate population structure of American samples related to Europeans and Africans
+- Select individuals with high Native American ancestry
 
 Goal day 2:
 
-- Perfom a sliding windows scan based on allele frequency differentiation and nucleotide diversity
-- Compute allele frequencies for SNPs of interest in Native Americans, Europeans and Africans [optional]
-- Assess statistical significance through simulations
-- Test for extended haplotype homozygosity based on high-depth sequencing data
+- Perfom a sliding windows scan based on allele frequency differentiation
+- Assess statistical significance of selection signatures through simulations
+- Test for extended haplotype homozygosity on high-depth sequencing data
+
+Write the paper!
 
 ## Agenda
 
@@ -114,6 +118,7 @@ Goal day 2:
 * Maximum likelihood and Bayesian estimation
 * Genotype likelihoods
 * Allele frequencies, SNPs and genotypes calling
+* Brief notes on experimental design
 * EM algorithm - Imputation - Phasing (Anders)
 
 #### [Practical](Files/day1.md) 2.30-4pm
@@ -121,7 +126,7 @@ Goal day 2:
 * Basic data filtering
 * Estimation of allele frequencies and SNP calling
 * Genotype calling
-* Example: identification of allele frequency differentation from low-depth sequencing data: the case of EDAR genetic variation in Native Americans
+* Example: estimation of allele frequencies from low-depth sequencing data: the case of EDAR genetic variation in Native Americans
 
 #### Research lecture
 

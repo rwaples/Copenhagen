@@ -317,7 +317,7 @@ $ANGSD/angsd -P 4 -b $DATA/$POP.bamlist -ref $REF -anc $ANC -out Results/$POP \
 	-GL 1 -doSaf 1 \
 	-doThetas 1 -pest Results/$POP.sfs &> /dev/null
 ```
-Then we need to index thess file and perform a sliding windows analysis using a window length of 50kbp and a step size of 10kbp.
+Then we need to index the file and perform a sliding windows analysis using a window length of 50kbp and a step size of 10kbp.
 ```
 POP=CHB
 echo $POP

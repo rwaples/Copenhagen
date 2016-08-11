@@ -196,7 +196,7 @@ Parameter | Meaning |
 --- | --- |
 -minInd 40 | use only sites with data from at least N individuals |
 -setMinDepth 70 | minimum total depth |
--setMaxDepth 200 | minimum total depth |
+-setMaxDepth 200 | maximum total depth |
 
 Specifically here we analyse only reads with a minimum mapping quality of 20, and bases with a minimum quality of 20 (the values are in phred scores).
 Also we specify that we are analysing only sites where we have data for half of the individuals (40) and minimum and maximum TOTAL depth of 70 and 200, respectively.
@@ -217,7 +217,7 @@ We have now seen how to build a command line in ANGSD with the example of doing 
 #### Estimation of allele frequencies and SNP calling
 
 We now want to estimate allele frequencies at each site, for the whole sample.
-In other words, at each site we want to to estimate (or count) how many copies of different alleles (two in case of biallelic variants) we observe in our sample (across all sequenced individuals).
+In other words, at each site we want to to estimate (or count) how many copies of different alleles (two in case of biallelic variants) we observe across all sequenced individuals.
 However with low depth data direct counting of individually assigned genotypes can lead to biased allele frequencies.
 
 ANGSD has an option to estimate **allele frequencies** taking into account data uncertainty from genotype likelihoods:
@@ -282,7 +282,7 @@ Filedumping:
         3: binary 3 times likelihood    .glf.gz
         4: text version (10 log likes)  .glf.gz
 ```
-A description of these different implementation can be found [here](http://www.popgen.dk/angsd/index.php/Genotype_likelihoods).
+A description of these different implementations can be found [here](http://www.popgen.dk/angsd/index.php/Genotype_likelihoods).
 The GATK model refers to the first GATK paper, SAMtools is somehow more sophisticated (non-independence of errors), SOAPsnp requires a reference sequence for recalibration of quality scores, SYK is error-type specific.
 For most applications and data, GATK and SAMtools models should give similar results.
 
@@ -455,7 +455,7 @@ Now we can run ANGSD.
 Note that we are interested in calculating the derived allele frequency, so we need to specify a putative ancestral sequence.
 Also, we need to modify our filtering, since each population has only 20 samples.
 However, we relax the filtering in order to be sure that our site is covered.
-Finally, since we know analyse single populations, we can filter sites if they deviate from HWE.
+Finally, since we now analyse single populations, we can filter sites if they deviate from HWE.
 Please note that we also add PEL samples, admixed individuals from Peru.
 ```
 for POP in LWK TSI CHB PEL NAM
@@ -568,7 +568,7 @@ zcat Results/PEL.geno.gz | wc -l
 zcat Results/PEL.geno.gz | grep -1 - | wc -l
 ```
 
-Why are there some many sites with missing genotypes?
+Why are there so many sites with missing genotypes?
 
 The mean depth per sample is around 2-3X, therefore genotypes cannot be assigned with very high confidence.
 
@@ -633,7 +633,7 @@ done
 ```
 
 For instance, we have 0/40 in LWK and TSI, 40/40 in CHB, and 14/20=0.70 in PEL.
-Recall that we previously estimated a minor allele frequency of 0.55 in PEL without assigning individuals.
+Recall that we previously estimated a minor allele frequency of 0.55 in PEL without assigning genotypes to individuals.
 
 Why do we observe such a difference in estimates?
 
@@ -673,7 +673,7 @@ paste $DATA/ALL.bamlist Results/ALL.admix.K$K.qopt > Results/ALL.admix.K$K.txt
 less -S Results/ALL.admix.K$K.txt
 ```
 
-From these quantities we can extract how many samples (and which ones) have a high proportion of Native American ancestry (e.g. >0.90) if you worjk 
+From these quantities we can extract how many samples (and which ones) have a high proportion of Native American ancestry (e.g. >0.90). 
 We can also plot the individual ancestral proportions for PEL samples.
 We need to specify the order of ancestral populations in the admixture file `Results/ALL.admix.K$K.txt`.
 
@@ -703,7 +703,7 @@ Then, one could perform all analyses considering only these samples.
 Genotype probabilities can be used also to infer the structure of your population.
 For instance, in our example, they can used to assess whether PEL samples are indeed admixed.
 
-We can compute genetic distances as a basis for population clustering driectly from genotype probabilities, and not from assigned genotypes as we have seen how problematic these latters can be at low-depth.
+We can compute genetic distances as a basis for population clustering driectly from genotype probabilities, and not from assigned genotypes as we have seen how problematic the latter can be at low-depth.
 
 First, we compute genotype posterior probabilities jointly for all samples:
 ```
